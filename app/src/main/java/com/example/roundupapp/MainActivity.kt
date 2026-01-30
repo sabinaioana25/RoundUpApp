@@ -8,10 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import com.example.roundupapp.data.repository.RoundUpRepository
 import com.example.roundupapp.presentation.home.HomeScreen
+import com.example.roundupapp.presentation.home.MainViewModel
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+  val repository = RoundUpRepository()
+  val viewModel = MainViewModel(repository)
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
@@ -19,7 +26,8 @@ class MainActivity : ComponentActivity() {
       RoundUpAppTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
           HomeScreen(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            viewModel = viewModel
           )
         }
       }
