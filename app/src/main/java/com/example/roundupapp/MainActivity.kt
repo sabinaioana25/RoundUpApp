@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.roundupapp.presentation.home.HomeScreen
+import com.example.roundupapp.presentation.home.HomeScreenHoist
 import com.example.roundupapp.presentation.home.MainViewModel
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
     setContent {
       RoundUpAppTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-          HomeScreen(
+          HomeScreenHoist(
             modifier = Modifier.padding(innerPadding),
             viewModel = hiltViewModel<MainViewModel>()
           )

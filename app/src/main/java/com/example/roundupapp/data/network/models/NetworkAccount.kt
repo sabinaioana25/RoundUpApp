@@ -1,6 +1,6 @@
-package com.example.roundupapp.domain.models.account
+package com.example.roundupapp.data.network.models
 
-data class Account(
+data class NetworkAccount(
   val accountUid: String,
   val accountType: String,
   val defaultCategory: String,

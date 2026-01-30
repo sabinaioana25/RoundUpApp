@@ -30,5 +30,6 @@ class MainViewModel @Inject constructor(
   fun getAccounts() = viewModelScope.launch {
     val accounts = repository.getAccounts()
     Log.i("HomeViewModel", accounts.toString())
+    _testState.value = _testState.value.copy(accounts = accounts)
   }
 }
