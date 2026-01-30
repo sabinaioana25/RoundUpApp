@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomeScreen(
-  modifier: Modifier = Modifier,
-  viewModel: MainViewModel
+  viewModel: MainViewModel,
+  modifier: Modifier = Modifier
 ) {
   var text by remember { mutableStateOf("Just") }
   val sampleUiState by viewModel.testState.collectAsState()

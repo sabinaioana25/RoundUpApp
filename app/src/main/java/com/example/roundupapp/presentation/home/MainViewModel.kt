@@ -3,7 +3,7 @@ package com.example.roundupapp.presentation.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.roundupapp.data.repository.RoundUpRepository
+import com.example.roundupapp.domain.repository.RoundUpRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
