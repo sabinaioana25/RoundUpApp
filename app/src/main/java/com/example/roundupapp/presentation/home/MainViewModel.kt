@@ -3,53 +3,49 @@ package com.example.roundupapp.presentation.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.roundupapp.domain.repository.RoundUpRepository
+import com.example.roundupapp.domain.usecase.LoadInitialDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jakarta.inject.Inject
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import kotlin.io.path.Path
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-  private val repository: RoundUpRepository
+  private val repository: RoundUpRepository,
+  private val loadInitialDataUseCase: LoadInitialDataUseCase
 ) : ViewModel() {
 
   private val _state = MutableStateFlow(ScreenState())
   val state: StateFlow<ScreenState> = _state.asStateFlow()
 
-  fun processIntent(intent: TaskIntent) {
-    when (intent) {
-      is TaskIntent.GetAccounts -> getAccounts()
-      is TaskIntent.CreateSavingsGoal -> createSavingsGoal(intent.name, intent.amountMinorUnits)
-      is TaskIntent.DeleteSavingsGoal -> deleteSavingsGoal(intent.savingsGoalUid)
-      is TaskIntent.TransferToSavingsGoal -> transferToSavingsGoal(intent.savingsGoalUid)
+  init {
+    loadData()
+  }
+
+  private fun loadData() = viewModelScope.launch {
+    val initial = loadInitialDataUseCase()
+    if (initial != null) {
+      _state.value = _state.value.copy(
+        accounts = initial.accounts,
+        transactions = initial.transactions,
+        savingsGoals = initial.savingsGoals,
+        balance = initial.balance
+      )
+    } else {
+      _state.value = _state.value.copy(error = "No data found")
     }
   }
 
-  fun getAccounts() = viewModelScope.launch {
-    val accounts = repository.getAccounts()
-    if (accounts.isNotEmpty()) {
-      val balance = repository.getBalanceList(
-        accounts[0].accountUid,
-      )
-      _state.value = _state.value.copy(
-        accounts = accounts,
-      )
-      val transactions = repository.getTransactions(
-        accounts[0].accountUid,
-        accounts[0].defaultCategory
-      )
-      val savingsGoals = repository.getSavingsGoals(accounts[0].accountUid)
-      _state.value = _state.value.copy(
-        accounts = accounts,
-        transactions = transactions,
-        savingsGoals = savingsGoals
-      )
-    } else {
-      _state.value = _state.value.copy(error = "No accounts found")
+  fun processIntent(intent: Intent) {
+    when (intent) {
+      is Intent.CreateSavingsGoal -> createSavingsGoal(intent.name, intent.amountMinorUnits)
+      is Intent.DeleteSavingsGoal -> deleteSavingsGoal(intent.savingsGoalUid)
+      is Intent.TransferToSavingsGoal -> transferToSavingsGoal(intent.savingsGoalUid)
     }
   }
 
@@ -94,7 +90,8 @@ class MainViewModel @Inject constructor(
     repository.transferToSavingsGoal(
       accountUid = _state.value.accounts[0].accountUid,
       savingsGoalUid = savingsGoalUid,
-      transferUid = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa")
+      transferUid = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+    )
   }
 
   suspend fun calculateSavings(roundedAmount: Int) {

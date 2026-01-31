@@ -20,7 +20,7 @@ fun HomeScreenHoist(
   modifier: Modifier = Modifier,
 ) {
   val state by viewModel.state.collectAsState()
-  val onIntent: (TaskIntent) -> Unit = viewModel::processIntent
+  val onIntent: (Intent) -> Unit = viewModel::processIntent
   HomeScreen(
     state = state,
     onIntent = onIntent
@@ -30,7 +30,7 @@ fun HomeScreenHoist(
 @Composable
 fun HomeScreen(
   state: ScreenState,
-  onIntent: (TaskIntent) -> Unit,
+  onIntent: (Intent) -> Unit,
   modifier: Modifier = Modifier
 ) {
   Column(
@@ -39,10 +39,6 @@ fun HomeScreen(
     horizontalAlignment = Alignment.CenterHorizontally
   )
   {
-    Button(onClick = { onIntent(TaskIntent.GetAccounts("text")) }) {
-      Text("Click me")
-    }
-
     Transactions(
       modifier = Modifier
         .weight(1f)
@@ -57,7 +53,7 @@ fun HomeScreen(
 
     Button(
       onClick = {
-        onIntent(TaskIntent.TransferToSavingsGoal(state.savingsGoals.first().savingsGoalUid))
+        onIntent(Intent.TransferToSavingsGoal(state.savingsGoals.first().savingsGoalUid))
       }) {
       Text("Transfer")
     }

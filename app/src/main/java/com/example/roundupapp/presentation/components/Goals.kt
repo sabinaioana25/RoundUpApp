@@ -14,13 +14,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.roundupapp.presentation.home.ScreenState
-import com.example.roundupapp.presentation.home.TaskIntent
+import com.example.roundupapp.presentation.home.Intent
 
 @Composable
 fun Goals(
   modifier: Modifier = Modifier,
   state: ScreenState,
-  onIntent: (TaskIntent) -> Unit
+  onIntent: (Intent) -> Unit
 ) {
 
   var goalName by remember { mutableStateOf("") }
@@ -39,7 +39,7 @@ fun Goals(
       val amountDecimal = targetAmount.toDoubleOrNull()
       val amountMinorUnits = amountDecimal?.let { (it * 100).toInt() }
       if (goalName.isNotBlank() && amountMinorUnits != null) {
-        onIntent(TaskIntent.CreateSavingsGoal(goalName, amountMinorUnits, "GBP"))
+        onIntent(Intent.CreateSavingsGoal(goalName, amountMinorUnits, "GBP"))
       } else {
         Log.d("HomeScreen", "Invalid input")
       }
@@ -57,7 +57,7 @@ fun Goals(
       Text(savingsGoal.name)
 
       Button(onClick = {
-        onIntent(TaskIntent.DeleteSavingsGoal(savingsGoal.savingsGoalUid))
+        onIntent(Intent.DeleteSavingsGoal(savingsGoal.savingsGoalUid))
       }) {
         Text("Delete Goal")
       }
