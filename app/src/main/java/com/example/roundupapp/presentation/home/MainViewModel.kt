@@ -22,11 +22,9 @@ class MainViewModel @Inject constructor(
 
   fun processIntent(intent: TaskIntent) {
     when (intent) {
-      is TaskIntent.LoadTasks -> ""
-      is TaskIntent.AddTask -> getAccounts()
+      is TaskIntent.GetAccounts -> getAccounts()
       is TaskIntent.CreateSavingsGoal -> createSavingsGoal(intent.name, intent.amountMinorUnits)
       is TaskIntent.DeleteSavingsGoal -> deleteSavingsGoal(intent.savingsGoalUid)
-      is TaskIntent.CompleteTask -> ""
       is TaskIntent.TransferToSavingsGoal -> transferToSavingsGoal(intent.savingsGoalUid)
     }
   }
