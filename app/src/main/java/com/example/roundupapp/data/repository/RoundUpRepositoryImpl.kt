@@ -1,9 +1,9 @@
 package com.example.roundupapp.data.repository
 
+import android.util.Log
 import com.example.roundupapp.BuildConfig
 import com.example.roundupapp.data.network.RoundUpApi.retrofitService
 import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
-import com.example.roundupapp.data.network.models.balance.NetworkBalanceWrapper
 import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferRequest
 import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalRequest
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoal
@@ -13,7 +13,7 @@ import com.example.roundupapp.data.network.models.transactions.NetworkTransactio
 import com.example.roundupapp.domain.models.account.DomainAccount
 import com.example.roundupapp.domain.models.account.toListOfDomainAccounts
 import com.example.roundupapp.domain.models.balance.DomainBalance
-import com.example.roundupapp.domain.models.balance.toListOfDomainBalances
+import com.example.roundupapp.domain.models.balance.toDomainBalance
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.savingsgoal.toDomainSavingsGoal
 import com.example.roundupapp.domain.models.savingsgoal.toListOfDomainSavingsGoals
@@ -35,17 +35,19 @@ class RoundUpRepositoryImpl : RoundUpRepository {
     }.toListOfDomainAccounts()
   }
 
-  override suspend fun getBalanceList(
+  override suspend fun getBalance(
     accountUid: String
-  ): List<DomainBalance> = withContext(Dispatchers.IO) {
+  ): DomainBalance? = withContext(Dispatchers.IO) {
     try {
-      retrofitService.getBalanceList(
+      val balance = retrofitService.getBalance(
         BuildConfig.API_KEY,
         accountUid
       )
+      balance
     } catch (e: Exception) {
-      NetworkBalanceWrapper(balanceList = emptyList())
-    }.toListOfDomainBalances()
+      Log.e("RoundUpRepository", "getBalance: $e")
+      null
+    }?.toDomainBalance()
   }
 
   override suspend fun getTransactions(
