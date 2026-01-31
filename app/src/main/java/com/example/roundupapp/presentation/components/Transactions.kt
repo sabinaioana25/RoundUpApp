@@ -12,10 +12,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.roundupapp.domain.models.transaction.DomainAmount
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
-import androidx.compose.ui.graphics.Color
 
 @Composable
 fun Transactions(
@@ -64,25 +64,25 @@ fun TransactionsPreview() {
 
 private val aListOfTransactions = listOf(
   DomainTransaction(
-    amount = DomainAmount(minorUnits = 100),
+    amount = DomainAmount(currency = "GBP",minorUnits = 100),
     direction = "OUT",
     transactionTime = "2026-01-31",
     counterPartyName = "John Doe"
   ),
   DomainTransaction(
-    amount = DomainAmount(minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100),
     direction = "IN",
     transactionTime = "2026-01-31",
     counterPartyName = "Gary Doe"
   ),
   DomainTransaction(
-    amount = DomainAmount(minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100),
     direction = "OUT",
     transactionTime = "2023-06-01",
     counterPartyName = "Jamie Oliver"
   ),
   DomainTransaction(
-    amount = DomainAmount(minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100),
     direction = "OUT",
     transactionTime = "2023-06-01",
     counterPartyName = "John Oliver"

@@ -9,7 +9,7 @@ data class ScreenState(
   val isLoading: Boolean = false,
   val tasks: List<String> = emptyList(),
   val accounts: List<DomainAccount> = emptyList(),
-  val balance: List<DomainBalance> = emptyList(),
+  val balance: String = "",
   val transactions: List<DomainTransaction> = emptyList(),
   val savingsGoals: List<DomainSavingsGoal> = emptyList(),
   val savingGoal: DomainSavingsGoal? = null,

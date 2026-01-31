@@ -1,7 +1,7 @@
 package com.example.roundupapp.data.network
 
 import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
-import com.example.roundupapp.data.network.models.balance.NetworkBalanceWrapper
+import com.example.roundupapp.data.network.models.balance.NetworkBalance
 import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferRequest
 import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferResponse
 import com.example.roundupapp.data.network.models.transactions.NetworkTransactionsWrapper
@@ -44,10 +44,10 @@ interface RoundUpApiService {
   ): NetworkAccountsWrapper
 
   @GET("accounts/{accountUid}/balance")
-  suspend fun getBalanceList(
+  suspend fun getBalance(
     @Header(QUERY_HEADER) accessToken: String,
     @Path(QUERY_PATH_ACCOUNT) accountUid: String,
-  ): NetworkBalanceWrapper
+  ): NetworkBalance
 
   @GET("feed/account/{accountUid}/category/{categoryUid}")
   suspend fun getTransactions(

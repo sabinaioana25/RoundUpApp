@@ -1,17 +1,19 @@
 package com.example.roundupapp.domain.usecase
 
+import android.util.Log
 import com.example.roundupapp.domain.models.account.DomainAccount
 import com.example.roundupapp.domain.models.balance.DomainBalance
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
 import com.example.roundupapp.domain.repository.RoundUpRepository
+import com.example.roundupapp.utils.toGbp
 import jakarta.inject.Inject
 
 data class InitialData(
   val accounts: List<DomainAccount>,
   val transactions: List<DomainTransaction>,
   val savingsGoals: List<DomainSavingsGoal>,
-  val balance: List<DomainBalance>
+  val balance: String
 )
 
 class LoadInitialDataUseCase @Inject constructor(
@@ -24,8 +26,7 @@ class LoadInitialDataUseCase @Inject constructor(
     val account = accounts[0]
     val transactions = repository.getTransactions(account.accountUid, account.defaultCategory)
     val savingsGoals = repository.getSavingsGoals(account.accountUid)
-    val balance = repository.getBalanceList(account.accountUid)
-
+    val balance = repository.getBalance(account.accountUid)?.effectiveBalance?.minorUnits.toGbp()
     return InitialData(accounts, transactions, savingsGoals, balance)
   }
 }

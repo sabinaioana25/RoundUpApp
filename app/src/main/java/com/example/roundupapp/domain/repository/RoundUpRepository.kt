@@ -8,9 +8,9 @@ import com.example.roundupapp.domain.models.transaction.DomainTransaction
 interface RoundUpRepository {
   suspend fun getAccounts(): List<DomainAccount>
 
-  suspend fun getBalanceList(
+  suspend fun getBalance(
     accountUid: String
-  ): List<DomainBalance>
+  ): DomainBalance?
 
   suspend fun getTransactions(
     accountUid: String,
