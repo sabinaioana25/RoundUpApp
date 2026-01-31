@@ -1,11 +1,16 @@
 package com.example.roundupapp.domain.repository
 
 import com.example.roundupapp.domain.models.account.DomainAccount
+import com.example.roundupapp.domain.models.balance.DomainBalance
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
 
 interface RoundUpRepository {
   suspend fun getAccounts(): List<DomainAccount>
+
+  suspend fun getBalanceList(
+    accountUid: String
+  ): List<DomainBalance>
 
   suspend fun getTransactions(
     accountUid: String,

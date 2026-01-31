@@ -1,8 +1,9 @@
 package com.example.roundupapp.data.repository
 
 import com.example.roundupapp.BuildConfig
-import com.example.roundupapp.data.network.RoundUpApi
+import com.example.roundupapp.data.network.RoundUpApi.retrofitService
 import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
+import com.example.roundupapp.data.network.models.balance.NetworkBalanceWrapper
 import com.example.roundupapp.data.network.models.feed.NetworkAmount
 import com.example.roundupapp.data.network.models.feed.NetworkTransactionsWrapper
 import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalRequest
@@ -10,6 +11,8 @@ import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoa
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
 import com.example.roundupapp.domain.models.account.DomainAccount
 import com.example.roundupapp.domain.models.account.toListOfDomainAccounts
+import com.example.roundupapp.domain.models.balance.DomainBalance
+import com.example.roundupapp.domain.models.balance.toListOfDomainBalances
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.savingsgoal.toDomainSavingsGoal
 import com.example.roundupapp.domain.models.savingsgoal.toListOfDomainSavingsGoals
@@ -22,12 +25,26 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class RoundUpRepositoryImpl : RoundUpRepository {
+
   override suspend fun getAccounts(): List<DomainAccount> = withContext(Dispatchers.IO) {
     try {
-      RoundUpApi.retrofitService.getAccounts(BuildConfig.API_KEY)
+      retrofitService.getAccounts(BuildConfig.API_KEY)
     } catch (e: Exception) {
       NetworkAccountsWrapper(accounts = emptyList())
     }.toListOfDomainAccounts()
+  }
+
+  override suspend fun getBalanceList(
+    accountUid: String
+  ): List<DomainBalance> = withContext(Dispatchers.IO) {
+    try {
+      retrofitService.getBalanceList(
+        BuildConfig.API_KEY,
+        accountUid
+      )
+    } catch (e: Exception) {
+      NetworkBalanceWrapper(balanceList = emptyList())
+    }.toListOfDomainBalances()
   }
 
   override suspend fun getTransactions(
@@ -36,7 +53,7 @@ class RoundUpRepositoryImpl : RoundUpRepository {
   ): List<DomainTransaction> = withContext(Dispatchers.IO) {
     try {
       val changesSince = ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
-      RoundUpApi.retrofitService.getTransactions(
+      retrofitService.getTransactions(
         BuildConfig.API_KEY,
         accountUid,
         categoryUid,
@@ -50,7 +67,7 @@ class RoundUpRepositoryImpl : RoundUpRepository {
   override suspend fun getSavingsGoals(accountUid: String): List<DomainSavingsGoal> =
     withContext(Dispatchers.IO) {
       val goals = try {
-        RoundUpApi.retrofitService.getSavingsGoals(
+        retrofitService.getSavingsGoals(
           BuildConfig.API_KEY,
           accountUid
         )
@@ -76,7 +93,7 @@ class RoundUpRepositoryImpl : RoundUpRepository {
           minorUnits = amountMinorUnits
         )
       )
-      val response = RoundUpApi.retrofitService.createSavingsGoal(
+      val response = retrofitService.createSavingsGoal(
         BuildConfig.API_KEY,
         accountUid,
         body = request,
@@ -103,7 +120,7 @@ class RoundUpRepositoryImpl : RoundUpRepository {
     accountUid: String,
     savingsGoalUid: String
   ): Boolean {
-    val response = RoundUpApi.retrofitService.deleteSavingsGoal(
+    val response = retrofitService.deleteSavingsGoal(
       BuildConfig.API_KEY,
       accountUid,
       savingsGoalUid
