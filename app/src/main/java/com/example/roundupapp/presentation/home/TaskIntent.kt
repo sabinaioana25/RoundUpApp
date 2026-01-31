@@ -9,5 +9,6 @@ sealed class TaskIntent {
     val currency: String
   ) : TaskIntent()
   data class DeleteSavingsGoal(val savingsGoalUid: String) : TaskIntent()
+  data class TransferToSavingsGoal(val savingsGoalUid: String) : TaskIntent()
   data class CompleteTask(val id: String) : TaskIntent()
 }

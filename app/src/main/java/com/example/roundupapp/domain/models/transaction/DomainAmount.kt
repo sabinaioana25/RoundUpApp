@@ -1,6 +1,6 @@
 package com.example.roundupapp.domain.models.transaction
 
-import com.example.roundupapp.data.network.models.feed.NetworkAmount
+import com.example.roundupapp.data.network.models.transactions.NetworkAmount
 
 data class DomainAmount(
   val minorUnits: Int,

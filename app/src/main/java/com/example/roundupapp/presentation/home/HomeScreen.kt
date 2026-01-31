@@ -97,6 +97,13 @@ fun HomeScreen(
         Text("Create Goal")
       }
 
+      Button(
+        onClick = {
+        onIntent(TaskIntent.TransferToSavingsGoal(state.savingsGoals.first().savingsGoalUid))
+      }) {
+        Text("Transfer")
+      }
+
       state.savingsGoals.forEach { savingsGoal ->
         Column(
           modifier = Modifier

@@ -1,6 +1,6 @@
 package com.example.roundupapp.data.network.models.savingsgoals
 
-import com.example.roundupapp.data.network.models.feed.NetworkAmount
+import com.example.roundupapp.data.network.models.transactions.NetworkAmount
 import com.google.gson.annotations.SerializedName
 
 data class CreateSavingsGoalRequest(

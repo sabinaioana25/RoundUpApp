@@ -4,11 +4,12 @@ import com.example.roundupapp.BuildConfig
 import com.example.roundupapp.data.network.RoundUpApi.retrofitService
 import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
 import com.example.roundupapp.data.network.models.balance.NetworkBalanceWrapper
-import com.example.roundupapp.data.network.models.feed.NetworkAmount
-import com.example.roundupapp.data.network.models.feed.NetworkTransactionsWrapper
+import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferRequest
 import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalRequest
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoal
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
+import com.example.roundupapp.data.network.models.transactions.NetworkAmount
+import com.example.roundupapp.data.network.models.transactions.NetworkTransactionsWrapper
 import com.example.roundupapp.domain.models.account.DomainAccount
 import com.example.roundupapp.domain.models.account.toListOfDomainAccounts
 import com.example.roundupapp.domain.models.balance.DomainBalance
@@ -126,5 +127,26 @@ class RoundUpRepositoryImpl : RoundUpRepository {
       savingsGoalUid
     )
     return response.isSuccessful
+  }
+
+  override suspend fun transferToSavingsGoal(
+    accountUid: String,
+    savingsGoalUid: String,
+    transferUid: String
+  ): Boolean {
+    val response = retrofitService.transferMoneyToSavingsGoal(
+      BuildConfig.API_KEY,
+      accountUid,
+      savingsGoalUid,
+      transferUid,
+      body = CreateAmountTransferRequest(
+        amount = NetworkAmount(
+          currency = "GBP",
+          minorUnits = 100
+        ),
+        reference = "test"
+      )
+    )
+    return response.transferUid == transferUid
   }
 }

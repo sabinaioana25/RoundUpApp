@@ -31,5 +31,11 @@ interface RoundUpRepository {
   suspend fun deleteSavingsGoal(
     accountUid: String,
     savingsGoalUid: String
-  ) : Boolean
+  ): Boolean
+
+  suspend fun transferToSavingsGoal(
+    accountUid: String,
+    savingsGoalUid: String,
+    transferUid: String,
+  ): Boolean
 }

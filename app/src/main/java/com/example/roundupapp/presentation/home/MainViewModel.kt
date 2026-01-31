@@ -27,12 +27,19 @@ class MainViewModel @Inject constructor(
       is TaskIntent.CreateSavingsGoal -> createSavingsGoal(intent.name, intent.amountMinorUnits)
       is TaskIntent.DeleteSavingsGoal -> deleteSavingsGoal(intent.savingsGoalUid)
       is TaskIntent.CompleteTask -> ""
+      is TaskIntent.TransferToSavingsGoal -> transferToSavingsGoal(intent.savingsGoalUid)
     }
   }
 
   fun getAccounts() = viewModelScope.launch {
     val accounts = repository.getAccounts()
     if (accounts.isNotEmpty()) {
+      val balance = repository.getBalanceList(
+        accounts[0].accountUid,
+      )
+      _state.value = _state.value.copy(
+        accounts = accounts,
+      )
       val transactions = repository.getTransactions(
         accounts[0].accountUid,
         accounts[0].defaultCategory
@@ -83,6 +90,13 @@ class MainViewModel @Inject constructor(
         savingsGoals = updatedGoals
       )
     }
+  }
+
+  fun transferToSavingsGoal(savingsGoalUid: String) = viewModelScope.launch {
+    repository.transferToSavingsGoal(
+      accountUid = _state.value.accounts[0].accountUid,
+      savingsGoalUid = savingsGoalUid,
+      transferUid = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa")
   }
 
   suspend fun calculateSavings(roundedAmount: Int) {

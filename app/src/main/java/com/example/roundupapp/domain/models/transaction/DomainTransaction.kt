@@ -1,6 +1,6 @@
 package com.example.roundupapp.domain.models.transaction
 
-import com.example.roundupapp.data.network.models.feed.NetworkTransactionsWrapper
+import com.example.roundupapp.data.network.models.transactions.NetworkTransactionsWrapper
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 

@@ -1,4 +1,4 @@
-package com.example.roundupapp.data.network.models.feed
+package com.example.roundupapp.data.network.models.transactions
 
 import com.google.gson.annotations.SerializedName
 

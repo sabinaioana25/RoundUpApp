@@ -1,6 +1,6 @@
 package com.example.roundupapp.domain.models.savingsgoal
 
-import com.example.roundupapp.data.network.models.savingsgoals.NetworkCreateSavingsGoalResponse
+import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalResponse
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoal
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
 import com.example.roundupapp.domain.models.transaction.DomainAmount
@@ -27,7 +27,7 @@ fun NetworkSavingsGoalsWrapper.toListOfDomainSavingsGoals(): List<DomainSavingsG
   } ?: emptyList()
 }
 
-fun NetworkCreateSavingsGoalResponse.toDomainSavingsGoal(originalGoal: NetworkSavingsGoal): DomainSavingsGoal {
+fun CreateSavingsGoalResponse.toDomainSavingsGoal(originalGoal: NetworkSavingsGoal): DomainSavingsGoal {
     return DomainSavingsGoal(
         savingsGoalUid = savingsGoalUid,
         name = originalGoal.name ?: "",

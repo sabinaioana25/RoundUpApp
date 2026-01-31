@@ -13,5 +13,6 @@ data class ScreenState(
   val savingGoal: DomainSavingsGoal? = null,
   val deleteGoal: Boolean = false,
   val roundUpAmount: Int = 0,
+  val transferToSavingsGoal: Boolean = false,
   val error: String? = "",
 )

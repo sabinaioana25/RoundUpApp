@@ -1,6 +1,6 @@
 package com.example.roundupapp.data.network.models.savingsgoals
 
-data class NetworkCreateSavingsGoalResponse(
+data class CreateSavingsGoalResponse(
     val savingsGoalUid: String,
     val errors: List<String>?
 )
