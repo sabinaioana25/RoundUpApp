@@ -29,7 +29,7 @@ fun NetworkSavingsGoalsWrapper.toListOfDomainSavingsGoals(): List<DomainSavingsG
 
 fun NetworkCreateSavingsGoalResponse.toDomainSavingsGoal(originalGoal: NetworkSavingsGoal): DomainSavingsGoal {
     return DomainSavingsGoal(
-        savingsGoalUid = this.savingsGoalUid,
+        savingsGoalUid = savingsGoalUid,
         name = originalGoal.name ?: "",
         targetAmount = originalGoal.targetAmount.toDomainAmount(),
         createdAt = originalGoal.createdAt ?: "",

@@ -25,7 +25,7 @@ fun HomeScreenHoist(
   viewModel: MainViewModel,
   modifier: Modifier = Modifier,
 ) {
-  val state by viewModel.testState.collectAsState()
+  val state by viewModel.state.collectAsState()
   val onIntent: (TaskIntent) -> Unit = viewModel::processIntent
   HomeScreen(
     state = state,
@@ -66,7 +66,6 @@ fun HomeScreen(
       state.accounts.firstOrNull()?.name?.let { Text(it) }
       state.transactions.firstOrNull()?.direction?.let { Text(it) }
       state.transactions.firstOrNull()?.transactionTime?.let { Text(it) }
-      state.transactions.firstOrNull()?.amount?.let { Text(it.amount.toString()) }
       state.savingsGoals.firstOrNull()?.name?.let { Text(it) }
 
       TextField(value = goalName, onValueChange = {

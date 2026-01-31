@@ -9,14 +9,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
   private val repository: RoundUpRepository
 ) : ViewModel() {
 
-  private val _testState = MutableStateFlow(ScreenState())
-  val testState: StateFlow<ScreenState> = _testState.asStateFlow()
+  private val _state = MutableStateFlow(ScreenState())
+  val state: StateFlow<ScreenState> = _state.asStateFlow()
 
   fun processIntent(intent: TaskIntent) {
     when (intent) {
@@ -36,18 +38,18 @@ class MainViewModel @Inject constructor(
         accounts[0].defaultCategory
       )
       val savingsGoals = repository.getSavingsGoals(accounts[0].accountUid)
-      _testState.value = _testState.value.copy(
+      _state.value = _state.value.copy(
         accounts = accounts,
         transactions = transactions,
         savingsGoals = savingsGoals
       )
     } else {
-      _testState.value = _testState.value.copy(error = "No accounts found")
+      _state.value = _state.value.copy(error = "No accounts found")
     }
   }
 
   fun createSavingsGoal(name: String, targetAmount: Int) = viewModelScope.launch {
-    val accounts = _testState.value.accounts
+    val accounts = _state.value.accounts
     if (accounts.isNotEmpty()) {
       val newGoal = repository.createSavingsGoal(
         accounts[0].accountUid,
@@ -56,14 +58,14 @@ class MainViewModel @Inject constructor(
         currency = "GBP"
       )
       if (newGoal != null) {
-        val updatedGoals = _testState.value.savingsGoals + newGoal
-        _testState.value = _testState.value.copy(savingsGoals = updatedGoals)
+        val updatedGoals = _state.value.savingsGoals + newGoal
+        _state.value = _state.value.copy(savingsGoals = updatedGoals)
       }
     }
   }
 
   fun deleteSavingsGoal(savingsGoalUid: String) = viewModelScope.launch {
-    val accounts = _testState.value.accounts
+    val accounts = _state.value.accounts
     if (accounts.isEmpty()) return@launch
 
     val wasDeleted = repository.deleteSavingsGoal(
@@ -72,14 +74,34 @@ class MainViewModel @Inject constructor(
     )
 
     if (wasDeleted) {
-      val updatedGoals = _testState.value.savingsGoals -
-        _testState.value.savingsGoals.first {
-        it.savingsGoalUid == savingsGoalUid
-      }
+      val updatedGoals = _state.value.savingsGoals -
+        _state.value.savingsGoals.first {
+          it.savingsGoalUid == savingsGoalUid
+        }
 
-      _testState.value = _testState.value.copy(
+      _state.value = _state.value.copy(
         savingsGoals = updatedGoals
       )
     }
+  }
+
+  suspend fun calculateSavings(roundedAmount: Int) {
+    val accounts = _state.value.accounts
+    val transactions = repository.getTransactions(
+      accounts[0].accountUid,
+      accounts[0].defaultCategory
+    )
+
+    val total = transactions
+      .filter { it.direction == "OUT" }
+      .sumOf { item ->
+        val pence = item.amount.minorUnits
+        val remainder = pence % 100
+        if (remainder == 0) 0 else 100 - remainder
+      }
+
+    val displayAmount = BigDecimal(total)
+      .divide(BigDecimal(100))
+      .setScale(2, RoundingMode.CEILING)
   }
 }
