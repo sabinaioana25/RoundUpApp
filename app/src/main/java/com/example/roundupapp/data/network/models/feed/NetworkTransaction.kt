@@ -10,4 +10,5 @@ data class NetworkTransaction(
   val direction: String,
   val updatedAt: String,
   val transactionTime: String,
+  val counterPartyName: String
 )

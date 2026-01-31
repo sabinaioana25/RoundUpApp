@@ -3,6 +3,7 @@ package com.example.roundupapp.presentation.home
 import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.roundupapp.presentation.components.Transactions
 
 @Composable
 fun HomeScreenHoist(
@@ -68,6 +70,13 @@ fun HomeScreen(
       state.transactions.firstOrNull()?.transactionTime?.let { Text(it) }
       state.savingsGoals.firstOrNull()?.name?.let { Text(it) }
 
+      Transactions(
+        modifier = Modifier
+          .weight(1f)
+          .fillMaxWidth(),
+        transactions = state.transactions
+      )
+
       TextField(value = goalName, onValueChange = {
         goalName = it
       })
@@ -88,10 +97,10 @@ fun HomeScreen(
         Text("Create Goal")
       }
 
-      state.savingsGoals.forEach {  savingsGoal ->
+      state.savingsGoals.forEach { savingsGoal ->
         Column(
           modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxWidth(),
           horizontalAlignment = Alignment.CenterHorizontally
         ) {
           Text(savingsGoal.name)

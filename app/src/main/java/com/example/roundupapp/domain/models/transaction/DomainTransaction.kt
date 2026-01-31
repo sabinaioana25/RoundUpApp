@@ -8,6 +8,7 @@ data class DomainTransaction(
   val amount: DomainAmount,
   val direction: String,
   val transactionTime: String,
+  val counterPartyName: String
 )
 
 fun NetworkTransactionsWrapper.toListOfDomainTransactions(): List<DomainTransaction> {
@@ -20,6 +21,7 @@ fun NetworkTransactionsWrapper.toListOfDomainTransactions(): List<DomainTransact
       amount = transaction.amount.toDomainAmount(),
       direction = transaction.direction,
       transactionTime = formattedDate,
+      counterPartyName = transaction.counterPartyName
     )
   }
 }
