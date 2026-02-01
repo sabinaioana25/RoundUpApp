@@ -1,8 +1,6 @@
 package com.example.roundupapp.domain.usecase
 
-import android.util.Log
 import com.example.roundupapp.domain.models.account.DomainAccount
-import com.example.roundupapp.domain.models.balance.DomainBalance
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
 import com.example.roundupapp.domain.repository.RoundUpRepository
@@ -16,7 +14,7 @@ data class InitialData(
   val balance: String
 )
 
-class LoadInitialDataUseCase @Inject constructor(
+class AccountDetailsUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
   suspend operator fun invoke() : InitialData? {

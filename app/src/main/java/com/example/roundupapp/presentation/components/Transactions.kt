@@ -64,7 +64,7 @@ fun TransactionsPreview() {
 
 private val aListOfTransactions = listOf(
   DomainTransaction(
-    amount = DomainAmount(currency = "GBP",minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100),
     direction = "OUT",
     transactionTime = "2026-01-31",
     counterPartyName = "John Doe"

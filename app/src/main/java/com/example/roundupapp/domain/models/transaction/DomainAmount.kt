@@ -7,9 +7,9 @@ data class DomainAmount(
   val minorUnits: Int,
 )
 
-fun NetworkAmount.toDomainAmount(): DomainAmount {
+fun NetworkAmount?.toDomainAmount(): DomainAmount {
   return DomainAmount(
-    currency = this.currency,
-    minorUnits = this.minorUnits,
+    currency = this?.currency ?: "GBP",
+    minorUnits = this?.minorUnits ?: 0
   )
 }

@@ -1,7 +1,6 @@
 package com.example.roundupapp.presentation.home
 
 import com.example.roundupapp.domain.models.account.DomainAccount
-import com.example.roundupapp.domain.models.balance.DomainBalance
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
 
@@ -14,7 +13,9 @@ data class ScreenState(
   val savingsGoals: List<DomainSavingsGoal> = emptyList(),
   val savingGoal: DomainSavingsGoal? = null,
   val deleteGoal: Boolean = false,
-  val roundUpAmount: Int = 0,
+  val roundedAmount: String = "",
   val transferToSavingsGoal: Boolean = false,
   val error: String? = "",
+  val accountUid: String = "",
+  val defaultCategory: String = "",
 )

@@ -39,6 +39,8 @@ fun HomeScreen(
     horizontalAlignment = Alignment.CenterHorizontally
   )
   {
+    Text(state.balance)
+
     Transactions(
       modifier = Modifier
         .weight(1f)
