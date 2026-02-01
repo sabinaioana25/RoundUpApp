@@ -8,11 +8,12 @@ import com.example.roundupapp.domain.usecase.CalculateRoundUpUseCase
 import com.example.roundupapp.domain.usecase.CreateSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.DeleteSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.TransferToSavingsGoalUseCase
-import com.example.roundupapp.utils.toDecimal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,97 +35,62 @@ class MainViewModel @Inject constructor(
     loadData()
   }
 
-  private fun loadData() = viewModelScope.launch {
-    val initial = accountDetailsUseCase()
-    if (initial != null && initial.accounts.isNotEmpty()) {
-      val initialAccountUid = initial.accounts[0].accountUid
+  private fun loadData() {
+    repository.accountDetails
+      .onEach { details ->
+        if (details != null) {
+          _state.update {
+            it.copy(
+              accounts = details.accounts,
+              transactions = details.transactions,
+              savingsGoals = details.savingsGoals,
+              balance = details.balance,
+              accountUid = details.accounts.firstOrNull()?.accountUid ?: "",
+              error = null
+            )
+          }
+        } else {
+          _state.update { it.copy(error = "No data found") }
+        }
+      }
+      .launchIn(viewModelScope)
 
-      _state.value = _state.value.copy(
-        accounts = initial.accounts,
-        transactions = initial.transactions,
-        savingsGoals = initial.savingsGoals,
-        balance = initial.balance,
-        accountUid = initialAccountUid
-      )
-    } else {
-      _state.value = _state.value.copy(error = "No data found")
-    }
+    viewModelScope.launch { accountDetailsUseCase() }
   }
 
   fun processIntent(intent: Intent) {
     when (intent) {
       is Intent.CreateSavingsGoal -> createSavingsGoal(intent.name, intent.amountMinorUnits)
-      is Intent.DeleteSavingsGoal -> deleteSavingsGoal(intent.savingsGoalUid)
-      is Intent.TransferToSavingsGoal -> transferToSavingsGoal(intent.savingsGoalUid)
+      is Intent.DeleteSavingsGoal -> deleteSavingsGoal()
+      is Intent.TransferToSavingsGoal -> transferToSavingsGoal()
     }
   }
 
   fun createSavingsGoal(name: String, targetAmount: String) = viewModelScope.launch {
     if (name.isBlank()) {
       _state.update { it.copy(error = "Name cannot be blank") }
+      return@launch
     }
 
-    if(targetAmount.isBlank()) {
+    if (targetAmount.isBlank()) {
       _state.update { it.copy(error = "Amount cannot be blank") }
+      return@launch
     }
 
     _state.update { it.copy(error = null) }
 
-    val accountUid = _state.value.accountUid
-
-    if (accountUid.isBlank()) return@launch
-    val newGoal = createSavingsGoalUseCase(
-      accountUid,
-      name,
-      targetAmount
-    )
-
-    val updatedGoals =
-      _state.value.savingsGoals + listOfNotNull(newGoal)
-    _state.value = _state.value.copy(savingsGoals = updatedGoals)
+    createSavingsGoalUseCase(name, targetAmount)
   }
 
-  fun deleteSavingsGoal(savingsGoalUid: String) = viewModelScope.launch {
-    val accountUid = _state.value.accountUid
-
-    val wasDeleted = deleteSavingsGoalUseCase(
-      accountUid = accountUid,
-      savingsGoalUid = savingsGoalUid
-    )
-
-    if (wasDeleted) {
-      _state.update { current ->
-        current.copy(
-          savingsGoals = current.savingsGoals.filter { it.savingsGoalUid != savingsGoalUid }
-        )
-      }
-    }
+  fun deleteSavingsGoal() = viewModelScope.launch {
+    deleteSavingsGoalUseCase()
   }
 
-  fun transferToSavingsGoal(savingsGoalUid: String) = viewModelScope.launch {
-    val goal =
-      _state.value.savingsGoals.find { it.savingsGoalUid == savingsGoalUid } ?: return@launch
-
-    val amountMinorUnits = goal.targetAmount.minorUnits
-    transferToSavingsGoalUseCase(
-      accountUid = _state.value.accountUid,
-      savingsGoalUid = savingsGoalUid,
-      amountMinorUnits = amountMinorUnits
-    )
-    _state.update { it.copy(transferToSavingsGoal = true) }
+  fun transferToSavingsGoal() = viewModelScope.launch {
+    transferToSavingsGoalUseCase()
   }
 
-  fun calculateSavings(roundedAmount: Int) {
-    val accountUid = _state.value.accountUid
-    val defaultCategoryUid = _state.value.defaultCategory
-
-    viewModelScope.launch {
-      val total = calculateRoundUpUseCase(
-        accountUid,
-        defaultCategoryUid,
-      )
-      val roundedAmount = total.toDecimal()
-      _state.update { it.copy(roundedAmount = roundedAmount.toPlainString()) }
-    }
+  fun calculateSavings() = viewModelScope.launch {
+    calculateRoundUpUseCase()
   }
 }

@@ -6,15 +6,16 @@ import jakarta.inject.Inject
 class TransferToSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke(
-    accountUid: String,
-    savingsGoalUid: String,
-    amountMinorUnits: Int
-  ): Boolean {
+  suspend operator fun invoke(): Boolean {
+    val details = repository.accountDetails.value ?: return false
+    val accountUid = details.accounts.firstOrNull()?.accountUid ?: return false
+    val goal = details.savingsGoals.firstOrNull() ?: return false
+
     val transferUid = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+
     return repository.transferToSavingsGoal(
       accountUid = accountUid,
-      savingsGoalUid = savingsGoalUid,
+      savingsGoalUid = goal.savingsGoalUid,
       transferUid = transferUid
     )
   }

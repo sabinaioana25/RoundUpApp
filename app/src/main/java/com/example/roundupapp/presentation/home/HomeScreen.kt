@@ -57,7 +57,7 @@ fun HomeScreen(
 
     Button(
       onClick = {
-        onIntent(Intent.TransferToSavingsGoal(state.savingsGoals.first().savingsGoalUid))
+        onIntent(Intent.TransferToSavingsGoal)
       }) {
       Text("Transfer")
     }

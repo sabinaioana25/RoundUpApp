@@ -48,7 +48,7 @@ fun Goals(
       Text(savingsGoal.name)
 
       Button(onClick = {
-        onIntent(Intent.DeleteSavingsGoal(savingsGoal.savingsGoalUid))
+        onIntent(Intent.DeleteSavingsGoal)
       }) {
         Text("Delete Goal")
       }

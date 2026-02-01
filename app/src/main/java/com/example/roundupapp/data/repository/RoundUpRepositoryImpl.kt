@@ -10,6 +10,7 @@ import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoa
 import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
 import com.example.roundupapp.data.network.models.transactions.NetworkAmount
 import com.example.roundupapp.data.network.models.transactions.NetworkTransactionsWrapper
+import com.example.roundupapp.domain.models.AccountDetails
 import com.example.roundupapp.domain.models.account.DomainAccount
 import com.example.roundupapp.domain.models.account.toListOfDomainAccounts
 import com.example.roundupapp.domain.models.balance.DomainBalance
@@ -20,12 +21,51 @@ import com.example.roundupapp.domain.models.savingsgoal.toListOfDomainSavingsGoa
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
 import com.example.roundupapp.domain.models.transaction.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
+import com.example.roundupapp.utils.toGbp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class RoundUpRepositoryImpl : RoundUpRepository {
+
+  private val _accountDetails = MutableStateFlow<AccountDetails?>(null)
+  override val accountDetails: StateFlow<AccountDetails?> = _accountDetails.asStateFlow()
+
+  override suspend fun refresh() {
+    val accounts = getAccounts()
+    if (accounts.isEmpty()) {
+      _accountDetails.update { it?.copy(accounts = emptyList()) }
+      return
+    }
+    val account = accounts[0]
+    val transactions = getTransactions(account.accountUid, account.defaultCategory)
+    val savingsGoals = getSavingsGoals(account.accountUid)
+    val balance = getBalance(account.accountUid)?.effectiveBalance?.minorUnits.toGbp()
+
+    _accountDetails.value = AccountDetails(
+      accounts = accounts,
+      transactions = transactions,
+      savingsGoals = savingsGoals,
+      balance = balance
+    )
+  }
+
+  override fun addSavingsGoal(goal: DomainSavingsGoal) {
+    _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals + goal) }
+  }
+
+  override fun removeSavingsGoal(savingsGoalUid: String) {
+    _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals.filter { g -> g.savingsGoalUid != savingsGoalUid }) }
+  }
+
+  override fun setRoundUpAmount(amount: Int) {
+    _accountDetails.update { it?.copy(roundUpAmount = amount) }
+  }
 
   override suspend fun getAccounts(): List<DomainAccount> = withContext(Dispatchers.IO) {
     try {

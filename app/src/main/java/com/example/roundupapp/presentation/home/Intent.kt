@@ -6,6 +6,6 @@ sealed class Intent {
     val amountMinorUnits: String,
     val currency: String
   ) : Intent()
-  data class DeleteSavingsGoal(val savingsGoalUid: String) : Intent()
-  data class TransferToSavingsGoal(val savingsGoalUid: String) : Intent()
+  object DeleteSavingsGoal : Intent()
+  object TransferToSavingsGoal : Intent()
 }
