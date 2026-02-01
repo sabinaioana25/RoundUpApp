@@ -59,7 +59,17 @@ class MainViewModel @Inject constructor(
     }
   }
 
-  fun createSavingsGoal(name: String, targetAmount: Int) = viewModelScope.launch {
+  fun createSavingsGoal(name: String, targetAmount: String) = viewModelScope.launch {
+    if (name.isBlank()) {
+      _state.update { it.copy(error = "Name cannot be blank") }
+    }
+
+    if(targetAmount.isBlank()) {
+      _state.update { it.copy(error = "Amount cannot be blank") }
+    }
+
+    _state.update { it.copy(error = null) }
+
     val accountUid = _state.value.accountUid
 
     if (accountUid.isBlank()) return@launch

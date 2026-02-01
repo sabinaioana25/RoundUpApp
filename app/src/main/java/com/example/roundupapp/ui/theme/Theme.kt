@@ -53,10 +53,15 @@ fun RoundUpAppTheme(
     darkTheme -> DarkColorScheme
     else -> LightColorScheme
   }
-  MaterialTheme(
+  Surface(
+    modifier = Modifier
+      .fillMaxSize(),
+    color = MaterialTheme.colorScheme.background
+  ) {
+    MaterialTheme(
       colorScheme = colorScheme,
       typography = Typography,
       content = content
     )
-
+  }
 }

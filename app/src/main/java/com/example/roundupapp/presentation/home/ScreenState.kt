@@ -11,7 +11,7 @@ data class ScreenState(
   val balance: String = "",
   val transactions: List<DomainTransaction> = emptyList(),
   val savingsGoals: List<DomainSavingsGoal> = emptyList(),
-  val savingGoal: DomainSavingsGoal? = null,
+  val savingsGoal: DomainSavingsGoal? = null,
   val deleteGoal: Boolean = false,
   val roundedAmount: String = "",
   val transferToSavingsGoal: Boolean = false,

@@ -7,11 +7,11 @@ import jakarta.inject.Inject
 class CreateSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke(accountUid: String, name: String, amountMinorUnits: Int): DomainSavingsGoal? {
+  suspend operator fun invoke(accountUid: String, name: String, amountMinorUnits: String): DomainSavingsGoal? {
     return repository.createSavingsGoal(
       accountUid = accountUid,
       name = name,
-      amountMinorUnits = amountMinorUnits,
+      amountMinorUnits = amountMinorUnits.toInt(),
       currency = "GBP"
     )
   }

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.roundupapp.domain.models.transaction.DomainAmount
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
+import com.example.roundupapp.ui.theme.RoundUpAppTheme
 
 @Composable
 fun Transactions(
@@ -57,12 +58,14 @@ fun Transactions(
 @Preview
 @Composable
 fun TransactionsPreview() {
-  Transactions(
-    transactions = aListOfTransactions
-  )
+  RoundUpAppTheme {
+    Transactions(
+      transactions = aListOfTransactions
+    )
+  }
 }
 
-private val aListOfTransactions = listOf(
+val aListOfTransactions = listOf(
   DomainTransaction(
     amount = DomainAmount(currency = "GBP", minorUnits = 100),
     direction = "OUT",

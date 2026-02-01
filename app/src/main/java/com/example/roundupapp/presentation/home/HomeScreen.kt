@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.roundupapp.presentation.components.Goals
 import com.example.roundupapp.presentation.components.Transactions
+import com.example.roundupapp.presentation.components.aListOfTransactions
+import com.example.roundupapp.ui.theme.RoundUpAppTheme
 
 @Composable
 fun HomeScreenHoist(
@@ -65,14 +67,18 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenHoistPreview() {
-  HomeScreen(
-    state = aScreenState,
-    onIntent = {}
-  )
+  RoundUpAppTheme {
+    HomeScreen(
+      state = aScreenState,
+      onIntent = {}
+    )
+  }
 }
 
 val aScreenState = ScreenState(
   isLoading = false,
   tasks = listOf("text1234"),
-  error = null
+  error = null,
+  transactions = aListOfTransactions,
+  balance = "£1000"
 )

@@ -3,7 +3,7 @@ package com.example.roundupapp.presentation.home
 sealed class Intent {
   data class CreateSavingsGoal(
     val name: String,
-    val amountMinorUnits: Int,
+    val amountMinorUnits: String,
     val currency: String
   ) : Intent()
   data class DeleteSavingsGoal(val savingsGoalUid: String) : Intent()
