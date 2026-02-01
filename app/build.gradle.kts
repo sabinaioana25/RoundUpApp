@@ -97,6 +97,7 @@ dependencies {
 
     // Testing
     testImplementation(libs.junit)
+    testImplementation(libs.coroutines.test)
     testImplementation(libs.mockito.inline)
     testImplementation(libs.mockito.junit)
     testImplementation(libs.mockito.kotlin)
