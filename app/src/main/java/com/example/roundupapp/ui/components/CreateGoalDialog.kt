@@ -67,7 +67,7 @@ fun CreateGoalDialog(
       Button(
         onClick = {
           if (goalName.isNotBlank() && targetAmount.isNotBlank()) {
-            onConfirm(goalName, targetAmount.toInt())
+            onConfirm(goalName, targetAmount.toDoubleOrNull()?.toInt() ?: 0)
           }
         })
       {
