@@ -2,6 +2,7 @@ package com.example.roundupapp.utils
 
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.security.SecureRandom
 
 fun Int?.toGbp(): String {
   this?.let {
@@ -19,4 +20,9 @@ fun Int.toDecimal(
   return BigDecimal(this)
     .divide(BigDecimal(100))
     .setScale(scale, rounding)
+}
+
+fun randomHex(length: Int, rnd: SecureRandom = SecureRandom()): String {
+  val hex = "0123456789abcdef"
+  return buildString { repeat(length) { append(hex[rnd.nextInt(16)]) } }
 }

@@ -46,7 +46,7 @@ fun Transactions(
         ) {
           Text(text = transaction.counterPartyName)
           Text(
-            text = (if (transaction.direction == "IN") "+" else "") + transaction.amount.minorUnits.toString(),
+            text = (if (transaction.direction == "IN") "+" else "") + transaction.amount.gbpUnits,
             color = if (transaction.direction == "IN") Color.Blue else MaterialTheme.colorScheme.onSurface
           )
         }
@@ -67,25 +67,25 @@ fun TransactionsPreview() {
 
 val aListOfTransactions = listOf(
   DomainTransaction(
-    amount = DomainAmount(currency = "GBP", minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100, gbpUnits = "£1.00"),
     direction = "OUT",
     transactionTime = "2026-01-31",
     counterPartyName = "John Doe"
   ),
   DomainTransaction(
-    amount = DomainAmount(currency = "GBP", minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100, gbpUnits = "£1.00"),
     direction = "IN",
     transactionTime = "2026-01-31",
     counterPartyName = "Gary Doe"
   ),
   DomainTransaction(
-    amount = DomainAmount(currency = "GBP", minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100, gbpUnits = "£1.00"),
     direction = "OUT",
     transactionTime = "2023-06-01",
     counterPartyName = "Jamie Oliver"
   ),
   DomainTransaction(
-    amount = DomainAmount(currency = "GBP", minorUnits = 100),
+    amount = DomainAmount(currency = "GBP", minorUnits = 100, gbpUnits = "£1.00"),
     direction = "OUT",
     transactionTime = "2023-06-01",
     counterPartyName = "John Oliver"

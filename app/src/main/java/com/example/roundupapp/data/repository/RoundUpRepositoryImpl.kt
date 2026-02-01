@@ -47,12 +47,23 @@ class RoundUpRepositoryImpl : RoundUpRepository {
     val savingsGoals = getSavingsGoals(account.accountUid)
     val balance = getBalance(account.accountUid)?.effectiveBalance?.minorUnits.toGbp()
 
-    _accountDetails.value = AccountDetails(
-      accounts = accounts,
-      transactions = transactions,
-      savingsGoals = savingsGoals,
-      balance = balance,
-    )
+    if(_accountDetails.value == null) {
+      _accountDetails.value = AccountDetails(
+        accounts = accounts,
+        transactions = transactions,
+        savingsGoals = savingsGoals,
+        balance = balance,
+      )
+    } else {
+      _accountDetails.update {
+        it?.copy(
+          accounts = accounts,
+          transactions = transactions,
+          savingsGoals = savingsGoals,
+          balance = balance,
+        )
+      }
+    }
   }
 
   override fun addSavingsGoal(goal: DomainSavingsGoal) {
@@ -184,9 +195,9 @@ class RoundUpRepositoryImpl : RoundUpRepository {
       body = CreateAmountTransferRequest(
         amount = NetworkAmount(
           currency = "GBP",
-          minorUnits = 100
+          minorUnits = _accountDetails.value?.roundUpAmount ?: 0
         ),
-        reference = "test"
+        reference = "reference"
       )
     )
     return response.transferUid == transferUid

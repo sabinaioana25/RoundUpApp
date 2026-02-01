@@ -1,7 +1,7 @@
 package com.example.roundupapp.domain.usecase
 
 import com.example.roundupapp.domain.repository.RoundUpRepository
-import jakarta.inject.Inject
+import javax.inject.Inject
 
 class CalculateRoundUpUseCase @Inject constructor(
   private val repository: RoundUpRepository
@@ -16,5 +16,6 @@ class CalculateRoundUpUseCase @Inject constructor(
         if (remainder == 0) 0 else 100 - remainder
       }
     repository.setRoundUpAmount(roundUpTotal)
+    repository.refresh()
   }
 }

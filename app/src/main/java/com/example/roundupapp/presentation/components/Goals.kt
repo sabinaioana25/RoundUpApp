@@ -49,6 +49,8 @@ private fun CreatedGoal(
   state: ScreenState,
   onIntent: (Intent) -> Unit
 ) {
+  var isTransferComplete by rememberSaveable { mutableStateOf(false) }
+
   state.savingsGoals.firstOrNull()?.let { savingsGoal ->
     Column(
       modifier = Modifier.fillMaxWidth(),
@@ -59,12 +61,19 @@ private fun CreatedGoal(
         Text(savingsGoal.targetAmount.minorUnits.toGbp())
       }
 
-      Text("available round up value ${state.roundedAmount.toGbp()}")
-      Button(onClick = { onIntent(Intent.TransferToSavingsGoal) }) {
-        Text("Transfer now!")
+      if (!isTransferComplete) {
+        Text("available round up value ${state.roundedAmount.toGbp()}")
+        Button(onClick = {
+          onIntent(Intent.TransferToSavingsGoal)
+          isTransferComplete = true
+        }) {
+          Text("Transfer now!")
+        }
       }
+
       Button(onClick = {
         onIntent(Intent.DeleteSavingsGoal)
+        isTransferComplete = false
       }) {
         Text("Delete Goal")
       }

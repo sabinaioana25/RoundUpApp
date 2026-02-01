@@ -1,6 +1,5 @@
 package com.example.roundupapp.domain.usecase
 
-import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import jakarta.inject.Inject
 
@@ -14,7 +13,7 @@ class CreateSavingsGoalUseCase @Inject constructor(
     val newGoal =  repository.createSavingsGoal(
       accountUid = accountUid,
       name = name,
-      amountMinorUnits = amountMinorUnits,
+      amountMinorUnits = amountMinorUnits * 100,
       currency = "GBP"
     ) ?: return
 

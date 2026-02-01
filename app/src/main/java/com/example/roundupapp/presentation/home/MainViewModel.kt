@@ -92,5 +92,7 @@ class MainViewModel @Inject constructor(
 
   fun transferToSavingsGoal() = viewModelScope.launch {
     transferToSavingsGoalUseCase()
+    accountDetailsUseCase()
+    calculateRoundUpUseCase()
   }
 }
