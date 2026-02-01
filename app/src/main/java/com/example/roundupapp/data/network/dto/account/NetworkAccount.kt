@@ -1,4 +1,4 @@
-package com.example.roundupapp.data.network.models.account
+package com.example.roundupapp.data.network.dto.account
 
 data class NetworkAccount(
   val accountUid: String,

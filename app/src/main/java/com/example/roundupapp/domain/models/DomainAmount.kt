@@ -1,6 +1,6 @@
-package com.example.roundupapp.domain.models.transaction
+package com.example.roundupapp.domain.models
 
-import com.example.roundupapp.data.network.models.transactions.NetworkAmount
+import com.example.roundupapp.data.network.dto.transactions.NetworkAmount
 import com.example.roundupapp.utils.toGbp
 
 data class DomainAmount(

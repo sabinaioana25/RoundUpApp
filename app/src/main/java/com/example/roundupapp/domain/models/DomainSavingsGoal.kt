@@ -1,16 +1,13 @@
-package com.example.roundupapp.domain.models.savingsgoal
+package com.example.roundupapp.domain.models
 
-import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalResponse
-import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoal
-import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
-import com.example.roundupapp.domain.models.transaction.DomainAmount
-import com.example.roundupapp.domain.models.transaction.toDomainAmount
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalResponse
+import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoal
+import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoalsWrapper
 
 data class DomainSavingsGoal(
   val savingsGoalUid: String,
   val name: String,
   val targetAmount: DomainAmount,
-  val createdAt: String,
   val totalSaved: DomainAmount,
   val state: String
 )
@@ -19,8 +16,7 @@ fun NetworkSavingsGoalsWrapper.toListOfDomainSavingsGoals(): List<DomainSavingsG
     DomainSavingsGoal(
       savingsGoalUid = it.savingsGoalUid ?: "",
       name = it.name ?: "",
-      targetAmount = it.targetAmount.toDomainAmount(),
-      createdAt = it.createdAt ?: "",
+      targetAmount = it.target.toDomainAmount(),
       totalSaved = it.totalSaved.toDomainAmount(),
       state = it.state ?: ""
     )
@@ -31,8 +27,7 @@ fun CreateSavingsGoalResponse.toDomainSavingsGoal(originalGoal: NetworkSavingsGo
     return DomainSavingsGoal(
         savingsGoalUid = savingsGoalUid,
         name = originalGoal.name ?: "",
-        targetAmount = originalGoal.targetAmount.toDomainAmount(),
-        createdAt = originalGoal.createdAt ?: "",
+        targetAmount = originalGoal.target.toDomainAmount(),
         totalSaved = originalGoal.totalSaved.toDomainAmount(),
         state = originalGoal.state ?: ""
     )

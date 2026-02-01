@@ -1,8 +1,6 @@
-package com.example.roundupapp.domain.models.balance
+package com.example.roundupapp.domain.models
 
-import com.example.roundupapp.data.network.models.balance.NetworkBalance
-import com.example.roundupapp.domain.models.transaction.DomainAmount
-import com.example.roundupapp.domain.models.transaction.toDomainAmount
+import com.example.roundupapp.data.network.dto.balance.NetworkBalance
 
 data class DomainBalance(
   val clearedBalance: DomainAmount,

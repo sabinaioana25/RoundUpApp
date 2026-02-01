@@ -17,7 +17,7 @@ import com.example.roundupapp.ui.theme.RoundUpAppTheme
 
 @Composable
 fun HomeScreenHoist(
-  viewModel: MainViewModel,
+  viewModel: HomeViewModel,
   modifier: Modifier = Modifier,
 ) {
   val state by viewModel.state.collectAsState()

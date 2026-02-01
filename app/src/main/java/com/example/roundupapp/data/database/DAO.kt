@@ -4,6 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.example.roundupapp.data.database.entities.AccountEntity
+import com.example.roundupapp.data.database.entities.BalanceEntity
+import com.example.roundupapp.data.database.entities.SavingsGoalEntity
+import com.example.roundupapp.data.database.entities.TransactionEntity
 
 @Dao
 interface AccountDao {

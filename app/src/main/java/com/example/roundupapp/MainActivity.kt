@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.roundupapp.ui.home.HomeScreenHoist
-import com.example.roundupapp.ui.home.MainViewModel
+import com.example.roundupapp.ui.home.HomeViewModel
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
         Scaffold(modifier = Modifier.fillMaxSize().padding(48.dp)) { innerPadding ->
           HomeScreenHoist(
             modifier = Modifier.padding(innerPadding),
-            viewModel = hiltViewModel<MainViewModel>()
+            viewModel = hiltViewModel<HomeViewModel>()
           )
         }
       }

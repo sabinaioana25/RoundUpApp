@@ -1,6 +1,6 @@
-package com.example.roundupapp.domain.models.account
+package com.example.roundupapp.domain.models
 
-import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
+import com.example.roundupapp.data.network.dto.account.NetworkAccountsWrapper
 
 data class DomainAccount(
   val accountUid: String,

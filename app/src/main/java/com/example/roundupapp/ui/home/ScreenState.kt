@@ -1,8 +1,8 @@
 package com.example.roundupapp.ui.home
 
-import com.example.roundupapp.domain.models.account.DomainAccount
-import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
-import com.example.roundupapp.domain.models.transaction.DomainTransaction
+import com.example.roundupapp.domain.models.DomainAccount
+import com.example.roundupapp.domain.models.DomainSavingsGoal
+import com.example.roundupapp.domain.models.DomainTransaction
 
 data class ScreenState(
   val isLoading: Boolean = false,
@@ -18,4 +18,5 @@ data class ScreenState(
   val error: String? = "",
   val accountUid: String = "",
   val defaultCategory: String = "",
+  val remainingAmount: String = ""
 )

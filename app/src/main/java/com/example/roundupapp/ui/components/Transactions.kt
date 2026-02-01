@@ -14,8 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.roundupapp.domain.models.transaction.DomainAmount
-import com.example.roundupapp.domain.models.transaction.DomainTransaction
+import com.example.roundupapp.domain.models.DomainAmount
+import com.example.roundupapp.domain.models.DomainTransaction
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 
 @Composable

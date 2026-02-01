@@ -1,10 +1,10 @@
 package com.example.roundupapp.domain.repository
 
 import com.example.roundupapp.domain.models.AccountDetails
-import com.example.roundupapp.domain.models.account.DomainAccount
-import com.example.roundupapp.domain.models.balance.DomainBalance
-import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
-import com.example.roundupapp.domain.models.transaction.DomainTransaction
+import com.example.roundupapp.domain.models.DomainAccount
+import com.example.roundupapp.domain.models.DomainBalance
+import com.example.roundupapp.domain.models.DomainSavingsGoal
+import com.example.roundupapp.domain.models.DomainTransaction
 import kotlinx.coroutines.flow.StateFlow
 
 interface RoundUpRepository {

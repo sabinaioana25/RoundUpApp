@@ -1,13 +1,13 @@
 package com.example.roundupapp.data.network
 
-import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
-import com.example.roundupapp.data.network.models.balance.NetworkBalance
-import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferRequest
-import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferResponse
-import com.example.roundupapp.data.network.models.transactions.NetworkTransactionsWrapper
-import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalRequest
-import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalResponse
-import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
+import com.example.roundupapp.data.network.dto.account.NetworkAccountsWrapper
+import com.example.roundupapp.data.network.dto.balance.NetworkBalance
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateAmountTransferRequest
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateAmountTransferResponse
+import com.example.roundupapp.data.network.dto.transactions.NetworkTransactionsWrapper
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalRequest
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalResponse
+import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoalsWrapper
 import com.google.gson.GsonBuilder
 import retrofit2.Response
 import retrofit2.Retrofit

@@ -58,6 +58,7 @@ private fun CreatedGoal(
     ) {
       Row {
         Text(savingsGoal.name)
+        Text(savingsGoal.totalSaved.minorUnits.toGbp())
         Text(savingsGoal.targetAmount.minorUnits.toGbp())
       }
 

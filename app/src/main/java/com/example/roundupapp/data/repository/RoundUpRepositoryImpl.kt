@@ -2,29 +2,29 @@ package com.example.roundupapp.data.repository
 
 import android.util.Log
 import com.example.roundupapp.BuildConfig
-import com.example.roundupapp.data.database.AccountEntity
+import com.example.roundupapp.data.database.entities.AccountEntity
 import com.example.roundupapp.data.database.RoundUpDatabase
-import com.example.roundupapp.data.database.SavingsGoalEntity
-import com.example.roundupapp.data.database.TransactionEntity
+import com.example.roundupapp.data.database.entities.SavingsGoalEntity
+import com.example.roundupapp.data.database.entities.TransactionEntity
 import com.example.roundupapp.data.network.RoundUpApi.retrofitService
-import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
-import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferRequest
-import com.example.roundupapp.data.network.models.savingsgoals.CreateSavingsGoalRequest
-import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoal
-import com.example.roundupapp.data.network.models.savingsgoals.NetworkSavingsGoalsWrapper
-import com.example.roundupapp.data.network.models.transactions.NetworkAmount
-import com.example.roundupapp.data.network.models.transactions.NetworkTransactionsWrapper
+import com.example.roundupapp.data.network.dto.account.NetworkAccountsWrapper
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateAmountTransferRequest
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalRequest
+import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoal
+import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoalsWrapper
+import com.example.roundupapp.data.network.dto.transactions.NetworkAmount
+import com.example.roundupapp.data.network.dto.transactions.NetworkTransactionsWrapper
 import com.example.roundupapp.domain.models.AccountDetails
-import com.example.roundupapp.domain.models.account.DomainAccount
-import com.example.roundupapp.domain.models.account.toListOfDomainAccounts
-import com.example.roundupapp.domain.models.balance.DomainBalance
-import com.example.roundupapp.domain.models.balance.toDomainBalance
-import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
-import com.example.roundupapp.domain.models.savingsgoal.toDomainSavingsGoal
-import com.example.roundupapp.domain.models.savingsgoal.toListOfDomainSavingsGoals
-import com.example.roundupapp.domain.models.transaction.DomainAmount
-import com.example.roundupapp.domain.models.transaction.DomainTransaction
-import com.example.roundupapp.domain.models.transaction.toListOfDomainTransactions
+import com.example.roundupapp.domain.models.DomainAccount
+import com.example.roundupapp.domain.models.toListOfDomainAccounts
+import com.example.roundupapp.domain.models.DomainBalance
+import com.example.roundupapp.domain.models.toDomainBalance
+import com.example.roundupapp.domain.models.DomainSavingsGoal
+import com.example.roundupapp.domain.models.toDomainSavingsGoal
+import com.example.roundupapp.domain.models.toListOfDomainSavingsGoals
+import com.example.roundupapp.domain.models.DomainAmount
+import com.example.roundupapp.domain.models.DomainTransaction
+import com.example.roundupapp.domain.models.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.utils.toGbp
 import kotlinx.coroutines.Dispatchers
@@ -87,7 +87,6 @@ class RoundUpRepositoryImpl(
             gbpUnits = ""
           ),
           state = entity.state,
-          createdAt = entity.createdAt
         )
       }
 
@@ -170,7 +169,6 @@ class RoundUpRepositoryImpl(
         totalSavedMinorUnits = it.totalSaved.minorUnits,
         totalSavedCurrency = it.totalSaved.currency,
         state = it.state,
-        createdAt = it.createdAt
       )
     })
   }
@@ -265,8 +263,7 @@ class RoundUpRepositoryImpl(
         NetworkSavingsGoal(
           savingsGoalUid = response.savingsGoalUid,
           name = name,
-          targetAmount = request.target,
-          createdAt = ZonedDateTime.now().format(DateTimeFormatter.ISO_INSTANT),
+          target = request.target,
           totalSaved = NetworkAmount(
             currency = "GBP",
             minorUnits = amountMinorUnits

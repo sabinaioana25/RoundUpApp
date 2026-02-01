@@ -1,4 +1,4 @@
-package com.example.roundupapp.data.network.models.savingsgoals
+package com.example.roundupapp.data.network.dto.savingsgoals
 
 data class CreateSavingsGoalResponse(
     val savingsGoalUid: String,

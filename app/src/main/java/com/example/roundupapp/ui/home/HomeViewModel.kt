@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
   private val repository: RoundUpRepository,
   private val accountDetailsUseCase: AccountDetailsUseCase,
   private val createSavingsGoalUseCase: CreateSavingsGoalUseCase,
@@ -80,11 +80,10 @@ class MainViewModel @Inject constructor(
       _state.update { it.copy(error = "Amount cannot be blank") }
       return@launch
     }
-
     _state.update { it.copy(error = null) }
-
     createSavingsGoalUseCase(name, targetAmount)
   }
+
 
   fun deleteSavingsGoal() = viewModelScope.launch {
     deleteSavingsGoalUseCase()
