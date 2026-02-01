@@ -22,7 +22,9 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     setContent {
       RoundUpAppTheme {
-        Scaffold(modifier = Modifier.fillMaxSize().padding(48.dp)) { innerPadding ->
+        Scaffold(modifier = Modifier
+          .fillMaxSize()
+          .padding(vertical = 48.dp)) { innerPadding ->
           HomeScreenHoist(
             modifier = Modifier.padding(innerPadding),
             viewModel = hiltViewModel<HomeViewModel>()
