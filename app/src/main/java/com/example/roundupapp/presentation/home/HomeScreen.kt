@@ -54,13 +54,6 @@ fun HomeScreen(
       state = state,
       onIntent = onIntent
     )
-
-    Button(
-      onClick = {
-        onIntent(Intent.TransferToSavingsGoal)
-      }) {
-      Text("Transfer")
-    }
   }
 }
 

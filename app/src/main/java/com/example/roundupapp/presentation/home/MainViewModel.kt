@@ -37,15 +37,16 @@ class MainViewModel @Inject constructor(
 
   private fun loadData() {
     repository.accountDetails
-      .onEach { details ->
-        if (details != null) {
+      .onEach { accountDetails ->
+        if (accountDetails != null) {
           _state.update {
             it.copy(
-              accounts = details.accounts,
-              transactions = details.transactions,
-              savingsGoals = details.savingsGoals,
-              balance = details.balance,
-              accountUid = details.accounts.firstOrNull()?.accountUid ?: "",
+              accounts = accountDetails.accounts,
+              transactions = accountDetails.transactions,
+              savingsGoals = accountDetails.savingsGoals,
+              balance = accountDetails.balance,
+              accountUid = accountDetails.accounts.firstOrNull()?.accountUid ?: "",
+              roundedAmount = accountDetails.roundUpAmount,
               error = null
             )
           }
@@ -55,7 +56,10 @@ class MainViewModel @Inject constructor(
       }
       .launchIn(viewModelScope)
 
-    viewModelScope.launch { accountDetailsUseCase() }
+    viewModelScope.launch {
+      accountDetailsUseCase()
+      calculateRoundUpUseCase()
+    }
   }
 
   fun processIntent(intent: Intent) {
@@ -66,13 +70,13 @@ class MainViewModel @Inject constructor(
     }
   }
 
-  fun createSavingsGoal(name: String, targetAmount: String) = viewModelScope.launch {
+  fun createSavingsGoal(name: String, targetAmount: Int) = viewModelScope.launch {
     if (name.isBlank()) {
       _state.update { it.copy(error = "Name cannot be blank") }
       return@launch
     }
 
-    if (targetAmount.isBlank()) {
+    if (targetAmount == 0) {
       _state.update { it.copy(error = "Amount cannot be blank") }
       return@launch
     }
@@ -88,9 +92,5 @@ class MainViewModel @Inject constructor(
 
   fun transferToSavingsGoal() = viewModelScope.launch {
     transferToSavingsGoalUseCase()
-  }
-
-  fun calculateSavings() = viewModelScope.launch {
-    calculateRoundUpUseCase()
   }
 }

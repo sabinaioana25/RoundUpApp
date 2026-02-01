@@ -12,6 +12,7 @@ interface RoundUpRepository {
   val accountDetails: StateFlow<AccountDetails?>
 
   suspend fun refresh()
+
   suspend fun getAccounts(): List<DomainAccount>
 
   suspend fun getBalance(

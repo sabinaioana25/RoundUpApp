@@ -51,7 +51,7 @@ class RoundUpRepositoryImpl : RoundUpRepository {
       accounts = accounts,
       transactions = transactions,
       savingsGoals = savingsGoals,
-      balance = balance
+      balance = balance,
     )
   }
 

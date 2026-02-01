@@ -1,6 +1,7 @@
 package com.example.roundupapp.presentation.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -11,9 +12,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.roundupapp.presentation.home.Intent
 import com.example.roundupapp.presentation.home.ScreenState
+import com.example.roundupapp.utils.toGbp
 
 @Composable
 fun Goals(
@@ -25,28 +26,43 @@ fun Goals(
   var showCreateGoalDialog by rememberSaveable { mutableStateOf(false) }
 
   if (state.savingsGoals.isEmpty()) {
-  Button(onClick = { showCreateGoalDialog = true }) {
-    Text("Create Goal")
-  }
+    Button(onClick = { showCreateGoalDialog = true }) {
+      Text("Create Goal")
+    }
   }
 
   if (showCreateGoalDialog) {
     CreateGoalDialog(
       onConfirm = { name, amount ->
-        onIntent(Intent.CreateSavingsGoal(name, amount.toString(), "GPB"))
+        onIntent(Intent.CreateSavingsGoal(name, amount, "GPB"))
         showCreateGoalDialog = false
       },
       onDismiss = { showCreateGoalDialog = false }
     )
   }
 
+  CreatedGoal(state, onIntent)
+}
+
+@Composable
+private fun CreatedGoal(
+  state: ScreenState,
+  onIntent: (Intent) -> Unit
+) {
   state.savingsGoals.firstOrNull()?.let { savingsGoal ->
     Column(
       modifier = Modifier.fillMaxWidth(),
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
-      Text(savingsGoal.name)
+      Row {
+        Text(savingsGoal.name)
+        Text(savingsGoal.targetAmount.minorUnits.toGbp())
+      }
 
+      Text("available round up value ${state.roundedAmount.toGbp()}")
+      Button(onClick = { onIntent(Intent.TransferToSavingsGoal) }) {
+        Text("Transfer now!")
+      }
       Button(onClick = {
         onIntent(Intent.DeleteSavingsGoal)
       }) {
