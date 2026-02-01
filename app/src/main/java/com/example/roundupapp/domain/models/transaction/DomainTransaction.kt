@@ -14,7 +14,7 @@ data class DomainTransaction(
 fun NetworkTransactionsWrapper.toListOfDomainTransactions(): List<DomainTransaction> {
   return feedItems.map { transaction ->
     val zonedDateTime = ZonedDateTime.parse(transaction.transactionTime)
-    val formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy")
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val formattedDate = zonedDateTime.format(formatter)
 
     DomainTransaction(

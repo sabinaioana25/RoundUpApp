@@ -1,9 +1,8 @@
-package com.example.roundupapp.presentation.home
+package com.example.roundupapp.ui.home
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -11,9 +10,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.roundupapp.presentation.components.Goals
-import com.example.roundupapp.presentation.components.Transactions
-import com.example.roundupapp.presentation.components.aListOfTransactions
+import com.example.roundupapp.ui.components.Goals
+import com.example.roundupapp.ui.components.Transactions
+import com.example.roundupapp.ui.components.aListOfTransactions
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 
 @Composable

@@ -1,4 +1,4 @@
-package com.example.roundupapp.presentation.home
+package com.example.roundupapp.ui.home
 
 sealed class Intent {
   data class CreateSavingsGoal(

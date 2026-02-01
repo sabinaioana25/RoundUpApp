@@ -1,4 +1,4 @@
-package com.example.roundupapp.presentation.home
+package com.example.roundupapp.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

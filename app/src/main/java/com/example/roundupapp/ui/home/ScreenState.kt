@@ -1,4 +1,4 @@
-package com.example.roundupapp.presentation.home
+package com.example.roundupapp.ui.home
 
 import com.example.roundupapp.domain.models.account.DomainAccount
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal

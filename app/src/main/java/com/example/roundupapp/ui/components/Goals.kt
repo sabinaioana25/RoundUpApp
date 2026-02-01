@@ -1,4 +1,4 @@
-package com.example.roundupapp.presentation.components
+package com.example.roundupapp.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,8 +12,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.roundupapp.presentation.home.Intent
-import com.example.roundupapp.presentation.home.ScreenState
+import com.example.roundupapp.ui.home.Intent
+import com.example.roundupapp.ui.home.ScreenState
 import com.example.roundupapp.utils.toGbp
 
 @Composable

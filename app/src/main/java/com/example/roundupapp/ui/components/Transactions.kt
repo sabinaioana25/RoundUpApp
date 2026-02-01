@@ -1,4 +1,4 @@
-package com.example.roundupapp.presentation.components
+package com.example.roundupapp.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
