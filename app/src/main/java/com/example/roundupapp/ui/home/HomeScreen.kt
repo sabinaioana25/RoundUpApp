@@ -1,14 +1,17 @@
 package com.example.roundupapp.ui.home
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.roundupapp.ui.components.Goals
 import com.example.roundupapp.ui.components.Transactions
@@ -34,25 +37,35 @@ fun HomeScreen(
   onIntent: (Intent) -> Unit,
   modifier: Modifier = Modifier
 ) {
-  Column(
-    modifier = Modifier
-      .fillMaxSize(),
-    horizontalAlignment = Alignment.CenterHorizontally
-  )
-  {
-    Text(state.balance)
 
-    Transactions(
+  if (state.error != null) {
+    Text(
+      text = state.error,
+      modifier = modifier.fillMaxSize(),
+      textAlign = TextAlign.Center,
+      style = MaterialTheme.typography.headlineLarge
+    )
+  } else {
+    Column(
       modifier = Modifier
-        .weight(1f)
-        .fillMaxWidth(),
-      transactions = state.transactions
+        .fillMaxSize(),
+      horizontalAlignment = Alignment.CenterHorizontally
     )
+    {
+      Text(state.balance)
 
-    Goals(
-      state = state,
-      onIntent = onIntent
-    )
+      Transactions(
+        modifier = Modifier
+          .weight(1f)
+          .fillMaxWidth(),
+        transactions = state.transactions
+      )
+
+      Goals(
+        state = state,
+        onIntent = onIntent
+      )
+    }
   }
 }
 

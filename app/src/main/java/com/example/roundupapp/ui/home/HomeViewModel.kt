@@ -51,7 +51,7 @@ class HomeViewModel @Inject constructor(
             )
           }
         } else {
-          _state.update { it.copy(error = "No data found") }
+          _state.update { it.copy(error = "No data to display") }
         }
       }
       .launchIn(viewModelScope)
