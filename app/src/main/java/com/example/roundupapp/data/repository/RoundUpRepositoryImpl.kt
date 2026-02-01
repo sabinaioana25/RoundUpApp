@@ -2,6 +2,10 @@ package com.example.roundupapp.data.repository
 
 import android.util.Log
 import com.example.roundupapp.BuildConfig
+import com.example.roundupapp.data.database.AccountEntity
+import com.example.roundupapp.data.database.RoundUpDatabase
+import com.example.roundupapp.data.database.SavingsGoalEntity
+import com.example.roundupapp.data.database.TransactionEntity
 import com.example.roundupapp.data.network.RoundUpApi.retrofitService
 import com.example.roundupapp.data.network.models.account.NetworkAccountsWrapper
 import com.example.roundupapp.data.network.models.savingsgoals.CreateAmountTransferRequest
@@ -18,6 +22,7 @@ import com.example.roundupapp.domain.models.balance.toDomainBalance
 import com.example.roundupapp.domain.models.savingsgoal.DomainSavingsGoal
 import com.example.roundupapp.domain.models.savingsgoal.toDomainSavingsGoal
 import com.example.roundupapp.domain.models.savingsgoal.toListOfDomainSavingsGoals
+import com.example.roundupapp.domain.models.transaction.DomainAmount
 import com.example.roundupapp.domain.models.transaction.DomainTransaction
 import com.example.roundupapp.domain.models.transaction.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
@@ -31,10 +36,71 @@ import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-class RoundUpRepositoryImpl : RoundUpRepository {
+class RoundUpRepositoryImpl(
+  private val database: RoundUpDatabase
+) : RoundUpRepository {
 
   private val _accountDetails = MutableStateFlow<AccountDetails?>(null)
   override val accountDetails: StateFlow<AccountDetails?> = _accountDetails.asStateFlow()
+
+  override suspend fun loadFromCache() {
+    val accounts = database.accountDao().getAll().map { entity ->
+      DomainAccount(
+        accountUid = entity.accountUid,
+        name = entity.name,
+        defaultCategory = entity.defaultCategory,
+        createdAt = ""
+      )
+    }
+    if (accounts.isEmpty()) return
+
+    val account = accounts[0]
+    val transactions = database.transactionDao()
+      .getByAccount(account.accountUid)
+      .map { entity ->
+        DomainTransaction(
+          direction = entity.direction,
+          amount = DomainAmount(
+            currency = "",
+            minorUnits = entity.amountMinorUnits,
+            gbpUnits = ""
+          ),
+          transactionTime = entity.transactionDate,
+          counterPartyName = entity.counterPartyName
+        )
+      }
+
+    val savingsGoals = database.savingsGoalDao()
+      .getBySavingsGoal(account.accountUid)
+      .map { entity ->
+        DomainSavingsGoal(
+          savingsGoalUid = entity.savingsGoalUid,
+          name = entity.name,
+          targetAmount = DomainAmount(
+            currency = entity.targetAmountCurrency,
+            minorUnits = entity.targetAmountMinorUnits,
+            gbpUnits = ""
+          ),
+          totalSaved = DomainAmount(
+            currency = entity.targetAmountCurrency,
+            minorUnits = entity.targetAmountMinorUnits,
+            gbpUnits = ""
+          ),
+          state = entity.state,
+          createdAt = entity.createdAt
+        )
+      }
+
+    val balanceEntity = database.balanceDao().get()
+    val balance = balanceEntity?.effectiveBalanceMinorUnits?.toGbp() ?: "0.00"
+
+    _accountDetails.value = AccountDetails(
+      accounts = accounts,
+      transactions = transactions,
+      savingsGoals = savingsGoals,
+      balance = balance
+    )
+  }
 
   override suspend fun refresh() {
     val accounts = getAccounts()
@@ -47,7 +113,9 @@ class RoundUpRepositoryImpl : RoundUpRepository {
     val savingsGoals = getSavingsGoals(account.accountUid)
     val balance = getBalance(account.accountUid)?.effectiveBalance?.minorUnits.toGbp()
 
-    if(_accountDetails.value == null) {
+    saveToCache(accounts, transactions, savingsGoals, account)
+
+    if (_accountDetails.value == null) {
       _accountDetails.value = AccountDetails(
         accounts = accounts,
         transactions = transactions,
@@ -64,6 +132,47 @@ class RoundUpRepositoryImpl : RoundUpRepository {
         )
       }
     }
+  }
+
+  private suspend fun saveToCache(
+    accounts: List<DomainAccount>,
+    transactions: List<DomainTransaction>,
+    savingsGoals: List<DomainSavingsGoal>,
+    account: DomainAccount
+  ) {
+    database.accountDao().insertAll(accounts.map {
+      AccountEntity(
+        accountUid = it.accountUid,
+        name = it.name,
+        defaultCategory = it.defaultCategory,
+      )
+    })
+
+    database.transactionDao().deleteByAccount(account.accountUid)
+    database.transactionDao().insertAll(transactions.map {
+      TransactionEntity(
+        accountUid = account.accountUid,
+        direction = it.direction,
+        amountMinorUnits = it.amount.minorUnits,
+        transactionDate = it.transactionTime,
+        counterPartyName = it.counterPartyName,
+      )
+    })
+
+    database.savingsGoalDao().deleteByAccount(account.accountUid)
+    database.savingsGoalDao().insertAll(savingsGoals.map {
+      SavingsGoalEntity(
+        savingsGoalUid = it.savingsGoalUid,
+        accountUid = account.accountUid,
+        name = it.name,
+        targetAmountMinorUnits = it.targetAmount.minorUnits,
+        targetAmountCurrency = it.targetAmount.currency,
+        totalSavedMinorUnits = it.totalSaved.minorUnits,
+        totalSavedCurrency = it.totalSaved.currency,
+        state = it.state,
+        createdAt = it.createdAt
+      )
+    })
   }
 
   override fun addSavingsGoal(goal: DomainSavingsGoal) {

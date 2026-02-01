@@ -7,6 +7,7 @@ class AccountDetailsUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
   suspend operator fun invoke() {
+    repository.loadFromCache()
     repository.refresh()
   }
 }

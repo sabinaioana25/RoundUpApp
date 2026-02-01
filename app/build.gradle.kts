@@ -65,7 +65,6 @@ dependencies {
 
     // Coroutines
     implementation(libs.coroutines)
-
     implementation(libs.kotlin.serialization)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
@@ -85,6 +84,8 @@ dependencies {
 
     // Database
     implementation(libs.room)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     // Compose
     implementation(platform(libs.androidx.compose.bom))
