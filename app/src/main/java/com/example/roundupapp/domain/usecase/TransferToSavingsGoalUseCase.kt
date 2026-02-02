@@ -2,7 +2,7 @@ package com.example.roundupapp.domain.usecase
 
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.utils.randomHex
-import jakarta.inject.Inject
+import javax.inject.Inject
 
 class TransferToSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository

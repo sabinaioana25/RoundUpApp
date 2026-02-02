@@ -65,7 +65,6 @@ private fun CreatedGoal(
   state: ScreenState,
   onIntent: (Intent) -> Unit
 ) {
-  var isTransferComplete by rememberSaveable { mutableStateOf(false) }
 
   state.savingsGoals.firstOrNull()?.let { savingsGoal ->
     Card(
@@ -104,7 +103,7 @@ private fun CreatedGoal(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (!isTransferComplete) {
+        if (savingsGoal.totalSaved.minorUnits == 0) {
           Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -123,7 +122,6 @@ private fun CreatedGoal(
             }
             Button(onClick = {
               onIntent(Intent.TransferToSavingsGoal)
-              isTransferComplete = true
             }) {
               Text("Transfer")
             }
@@ -133,7 +131,6 @@ private fun CreatedGoal(
         OutlinedButton(
           onClick = {
             onIntent(Intent.DeleteSavingsGoal)
-            isTransferComplete = false
           },
           modifier = Modifier.fillMaxWidth()
         ) {

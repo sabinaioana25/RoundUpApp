@@ -36,7 +36,7 @@ interface SavingsGoalDao {
   suspend fun insertAll(goals: List<SavingsGoalEntity>)
 
   @Query("SELECT * FROM savings_goals WHERE accountUid = :accountUid")
-  suspend fun getBySavingsGoal(accountUid: String): List<SavingsGoalEntity>
+  suspend fun getByAccountSavingsGoal(accountUid: String): List<SavingsGoalEntity>
 
   @Query("DELETE FROM savings_goals WHERE accountUid = :accountUid")
   suspend fun deleteByAccount(accountUid: String)

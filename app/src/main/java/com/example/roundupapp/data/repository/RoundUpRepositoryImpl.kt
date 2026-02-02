@@ -2,28 +2,26 @@ package com.example.roundupapp.data.repository
 
 import android.util.Log
 import com.example.roundupapp.BuildConfig
-import com.example.roundupapp.data.database.entities.AccountEntity
 import com.example.roundupapp.data.database.RoundUpDatabase
+import com.example.roundupapp.data.database.entities.AccountEntity
+import com.example.roundupapp.data.database.entities.BalanceEntity
 import com.example.roundupapp.data.database.entities.SavingsGoalEntity
 import com.example.roundupapp.data.database.entities.TransactionEntity
 import com.example.roundupapp.data.network.RoundUpApi.retrofitService
-import com.example.roundupapp.data.network.dto.account.NetworkAccountsWrapper
 import com.example.roundupapp.data.network.dto.savingsgoals.CreateAmountTransferRequest
 import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalRequest
 import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoal
-import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoalsWrapper
 import com.example.roundupapp.data.network.dto.transactions.NetworkAmount
-import com.example.roundupapp.data.network.dto.transactions.NetworkTransactionsWrapper
 import com.example.roundupapp.domain.models.AccountDetails
 import com.example.roundupapp.domain.models.DomainAccount
-import com.example.roundupapp.domain.models.toListOfDomainAccounts
-import com.example.roundupapp.domain.models.DomainBalance
-import com.example.roundupapp.domain.models.toDomainBalance
-import com.example.roundupapp.domain.models.DomainSavingsGoal
-import com.example.roundupapp.domain.models.toDomainSavingsGoal
-import com.example.roundupapp.domain.models.toListOfDomainSavingsGoals
 import com.example.roundupapp.domain.models.DomainAmount
+import com.example.roundupapp.domain.models.DomainBalance
+import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.models.DomainTransaction
+import com.example.roundupapp.domain.models.toDomainBalance
+import com.example.roundupapp.domain.models.toDomainSavingsGoal
+import com.example.roundupapp.domain.models.toListOfDomainAccounts
+import com.example.roundupapp.domain.models.toListOfDomainSavingsGoals
 import com.example.roundupapp.domain.models.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.utils.toGbp
@@ -71,7 +69,7 @@ class RoundUpRepositoryImpl(
       }
 
     val savingsGoals = database.savingsGoalDao()
-      .getBySavingsGoal(account.accountUid)
+      .getByAccountSavingsGoal(account.accountUid)
       .map { entity ->
         DomainSavingsGoal(
           savingsGoalUid = entity.savingsGoalUid,
@@ -79,12 +77,12 @@ class RoundUpRepositoryImpl(
           targetAmount = DomainAmount(
             currency = entity.targetAmountCurrency,
             minorUnits = entity.targetAmountMinorUnits,
-            gbpUnits = ""
+            gbpUnits = entity.targetAmountMinorUnits.toGbp()
           ),
           totalSaved = DomainAmount(
-            currency = entity.targetAmountCurrency,
-            minorUnits = entity.targetAmountMinorUnits,
-            gbpUnits = ""
+            currency = entity.totalSavedCurrency,
+            minorUnits = entity.totalSavedMinorUnits,
+            gbpUnits = entity.totalSavedMinorUnits.toGbp()
           ),
           state = entity.state,
         )
@@ -107,12 +105,14 @@ class RoundUpRepositoryImpl(
       _accountDetails.update { it?.copy(accounts = emptyList()) }
       return
     }
+
     val account = accounts[0]
     val transactions = getTransactions(account.accountUid, account.defaultCategory)
     val savingsGoals = getSavingsGoals(account.accountUid)
+    val balanceDomain = getBalance(account.accountUid)
     val balance = getBalance(account.accountUid)?.effectiveBalance?.minorUnits.toGbp()
 
-    saveToCache(accounts, transactions, savingsGoals, account)
+    saveToCache(accounts, transactions, savingsGoals, account, balanceDomain)
 
     if (_accountDetails.value == null) {
       _accountDetails.value = AccountDetails(
@@ -137,7 +137,8 @@ class RoundUpRepositoryImpl(
     accounts: List<DomainAccount>,
     transactions: List<DomainTransaction>,
     savingsGoals: List<DomainSavingsGoal>,
-    account: DomainAccount
+    account: DomainAccount,
+    balance: DomainBalance?,
   ) {
     database.accountDao().insertAll(accounts.map {
       AccountEntity(
@@ -171,6 +172,17 @@ class RoundUpRepositoryImpl(
         state = it.state,
       )
     })
+
+    balance?.let {
+      database.balanceDao().insert(
+        BalanceEntity(
+          id = 0,
+          accountUid = account.accountUid,
+          effectiveBalanceMinorUnits = it.effectiveBalance.minorUnits,
+          effectiveBalanceCurrency = it.effectiveBalance.currency
+        )
+      )
+    }
   }
 
   override fun addSavingsGoal(goal: DomainSavingsGoal) {
@@ -187,10 +199,12 @@ class RoundUpRepositoryImpl(
 
   override suspend fun getAccounts(): List<DomainAccount> = withContext(Dispatchers.IO) {
     try {
-      retrofitService.getAccounts(BuildConfig.API_KEY)
+      val response = retrofitService.getAccounts(BuildConfig.API_KEY)
+      response.toListOfDomainAccounts()
     } catch (e: Exception) {
-      NetworkAccountsWrapper(accounts = emptyList())
-    }.toListOfDomainAccounts()
+      Log.e("RoundUpRepository", "Error fetching accounts", e)
+      emptyList()
+    }
   }
 
   override suspend fun getBalance(
@@ -201,11 +215,11 @@ class RoundUpRepositoryImpl(
         BuildConfig.API_KEY,
         accountUid
       )
-      balance
+      balance.toDomainBalance()
     } catch (e: Exception) {
-      Log.e("RoundUpRepository", "getBalance: $e")
+      Log.e("RoundUpRepository", "Error fetching balance", e)
       null
-    }?.toDomainBalance()
+    }
   }
 
   override suspend fun getTransactions(
@@ -213,30 +227,33 @@ class RoundUpRepositoryImpl(
     categoryUid: String
   ): List<DomainTransaction> = withContext(Dispatchers.IO) {
     try {
-      val changesSince = ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
-      retrofitService.getTransactions(
+      val changesSince =
+        ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
+      val response = retrofitService.getTransactions(
         BuildConfig.API_KEY,
         accountUid,
         categoryUid,
         changesSince
       )
+      response.toListOfDomainTransactions()
     } catch (e: Exception) {
-      NetworkTransactionsWrapper(feedItems = emptyList())
-    }.toListOfDomainTransactions()
+      Log.e("RoundUpRepository", "Error fetching transactions", e)
+      emptyList()
+    }
   }
 
   override suspend fun getSavingsGoals(accountUid: String): List<DomainSavingsGoal> =
     withContext(Dispatchers.IO) {
-      val goals = try {
-        retrofitService.getSavingsGoals(
+      try {
+        val goals = retrofitService.getSavingsGoals(
           BuildConfig.API_KEY,
           accountUid
         )
+        goals.toListOfDomainSavingsGoals()
       } catch (e: Exception) {
-        null
+        Log.e("RoundUpRepository", "Error fetching savings goals", e)
+        emptyList()
       }
-      (goals
-        ?: NetworkSavingsGoalsWrapper(savingsGoalList = emptyList())).toListOfDomainSavingsGoals()
     }
 
   override suspend fun createSavingsGoal(
@@ -266,12 +283,13 @@ class RoundUpRepositoryImpl(
           target = request.target,
           totalSaved = NetworkAmount(
             currency = "GBP",
-            minorUnits = amountMinorUnits
+            minorUnits = 0
           ),
           state = "ACTIVE"
         )
       )
     } catch (e: Exception) {
+      Log.e("RoundUpRepository", "Error creating savings goal", e)
       null
     }
   }
@@ -279,33 +297,43 @@ class RoundUpRepositoryImpl(
   override suspend fun deleteSavingsGoal(
     accountUid: String,
     savingsGoalUid: String
-  ): Boolean {
-    val response = retrofitService.deleteSavingsGoal(
-      BuildConfig.API_KEY,
-      accountUid,
-      savingsGoalUid
-    )
-    return response.isSuccessful
+  ): Boolean = withContext(Dispatchers.IO) {
+    try {
+      val response = retrofitService.deleteSavingsGoal(
+        BuildConfig.API_KEY,
+        accountUid,
+        savingsGoalUid
+      )
+      response.isSuccessful
+    } catch (e: Exception) {
+      Log.e("RoundUpRepository", "Error deleting savings goal", e)
+      false
+    }
   }
 
   override suspend fun transferToSavingsGoal(
     accountUid: String,
     savingsGoalUid: String,
     transferUid: String
-  ): Boolean {
-    val response = retrofitService.transferMoneyToSavingsGoal(
-      BuildConfig.API_KEY,
-      accountUid,
-      savingsGoalUid,
-      transferUid,
-      body = CreateAmountTransferRequest(
-        amount = NetworkAmount(
-          currency = "GBP",
-          minorUnits = _accountDetails.value?.roundUpAmount ?: 0
-        ),
-        reference = "reference"
+  ): Boolean = withContext(Dispatchers.IO) {
+    try {
+      val response = retrofitService.transferMoneyToSavingsGoal(
+        BuildConfig.API_KEY,
+        accountUid,
+        savingsGoalUid,
+        transferUid,
+        body = CreateAmountTransferRequest(
+          amount = NetworkAmount(
+            currency = "GBP",
+            minorUnits = _accountDetails.value?.roundUpAmount ?: 0
+          ),
+          reference = "Round-up transfer"
+        )
       )
-    )
-    return response.transferUid == transferUid
+      response.transferUid == transferUid
+    } catch (e: Exception) {
+      Log.e("RoundUpRepository", "Error transferring to savings goal", e)
+      false
+    }
   }
 }
