@@ -1,10 +1,7 @@
 package com.example.roundupapp.domain.repository
 
 import com.example.roundupapp.domain.models.AccountDetails
-import com.example.roundupapp.domain.models.DomainAccount
-import com.example.roundupapp.domain.models.DomainBalance
 import com.example.roundupapp.domain.models.DomainSavingsGoal
-import com.example.roundupapp.domain.models.DomainTransaction
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -20,22 +17,7 @@ interface RoundUpRepository {
 
   suspend fun loadFromCache()
 
-  suspend fun refresh()
-
-  suspend fun getAccounts(): List<DomainAccount>
-
-  suspend fun getBalance(
-    accountUid: String
-  ): DomainBalance?
-
-  suspend fun getTransactions(
-    accountUid: String,
-    categoryUid: String
-  ): List<DomainTransaction>
-
-  suspend fun getSavingsGoals(
-    accountUid: String,
-  ): List<DomainSavingsGoal>
+  suspend fun refreshFromNetwork()
 
   suspend fun createSavingsGoal(
     accountUid: String,
@@ -49,9 +31,9 @@ interface RoundUpRepository {
     savingsGoalUid: String
   ): Boolean
 
-  fun addSavingsGoal(goal: DomainSavingsGoal)
+  suspend fun addSavingsGoal(goal: DomainSavingsGoal, accountUid: String)
 
-  fun removeSavingsGoal(savingsGoalUid: String)
+  suspend fun removeSavingsGoal(savingsGoalUid: String)
 
   fun setRoundUpAmount(amount: Int)
 

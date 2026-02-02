@@ -40,6 +40,9 @@ interface SavingsGoalDao {
 
   @Query("DELETE FROM savings_goals WHERE accountUid = :accountUid")
   suspend fun deleteByAccount(accountUid: String)
+
+  @Query("DELETE FROM savings_goals WHERE savingsGoalUid = :savingsGoalUid")
+  suspend fun deleteBySavingsGoalUid(savingsGoalUid: String)
 }
 
 @Dao

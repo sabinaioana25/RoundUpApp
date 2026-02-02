@@ -40,7 +40,6 @@ class CalculateRoundUpUseCaseTest {
 
         // Then
         coVerify { repository.setRoundUpAmount(146) }
-        coVerify { repository.refresh() }
     }
 
     @Test

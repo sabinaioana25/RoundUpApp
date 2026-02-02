@@ -2,6 +2,7 @@ package com.example.roundupapp.data.repository
 
 import android.util.Log
 import com.example.roundupapp.BuildConfig
+import com.example.roundupapp.data.NetworkResult
 import com.example.roundupapp.data.database.RoundUpDatabase
 import com.example.roundupapp.data.database.entities.AccountEntity
 import com.example.roundupapp.data.database.entities.BalanceEntity
@@ -54,18 +55,22 @@ class RoundUpRepositoryImpl(
         createdAt = ""
       )
     }
-    if (accounts.isEmpty()) return
+    if (accounts.isEmpty()) {
+      Log.d("RoundUpRepository", "No accounts in cache")
+      return
+    }
 
     val account = accounts[0]
+
     val transactions = database.transactionDao()
       .getByAccount(account.accountUid)
       .map { entity ->
         DomainTransaction(
           direction = entity.direction,
           amount = DomainAmount(
-            currency = "",
+            currency = "GBP",
             minorUnits = entity.amountMinorUnits,
-            gbpUnits = ""
+            gbpUnits = entity.amountMinorUnits.toGbp()
           ),
           transactionTime = entity.transactionDate,
           counterPartyName = entity.counterPartyName
@@ -103,38 +108,74 @@ class RoundUpRepositoryImpl(
     )
   }
 
-  override suspend fun refresh() {
-    val accounts = getAccounts()
+  override suspend fun refreshFromNetwork() {
+    val currentRoundUpAmount = _accountDetails.value?.roundUpAmount ?: 0
+
+    val accountsResult = getAccountsWithResult()
+    if (accountsResult is NetworkResult.Error) {
+      Log.e("RoundUpRepository", "Failed to fetch accounts: ${accountsResult.exception.message}")
+      return
+    }
+
+    val accounts = (accountsResult as NetworkResult.Success).data
     if (accounts.isEmpty()) {
-      _accountDetails.update { it?.copy(accounts = emptyList()) }
+      Log.w("RoundUpRepository", "No accounts found")
       return
     }
 
     val account = accounts[0]
-    val transactions = getTransactions(account.accountUid, account.defaultCategory)
-    val savingsGoals = getSavingsGoals(account.accountUid)
-    val balanceDomain = getBalance(account.accountUid)
-    val balance = getBalance(account.accountUid)?.effectiveBalance?.minorUnits.toGbp()
 
-    saveToCache(accounts, transactions, savingsGoals, account, balanceDomain)
+    val transactionsResult = getTransactionsWithResult(account.accountUid, account.defaultCategory)
+    val savingsGoalsResult = getSavingsGoalsWithResult(account.accountUid)
+    val balanceResult = getBalanceWithResult(account.accountUid)
 
-    if (_accountDetails.value == null) {
-      _accountDetails.value = AccountDetails(
-        accounts = accounts,
-        transactions = transactions,
-        savingsGoals = savingsGoals,
-        balance = balance,
-      )
-    } else {
-      _accountDetails.update {
-        it?.copy(
-          accounts = accounts,
-          transactions = transactions,
-          savingsGoals = savingsGoals,
-          balance = balance,
-        )
+    // Only update if there is data (don't clear on errors)
+    val transactions = when (transactionsResult) {
+      is NetworkResult.Success -> transactionsResult.data
+      is NetworkResult.Error -> {
+        Log.e("RoundUpRepository", "Failed to fetch transactions, keeping cached data")
+        _accountDetails.value?.transactions ?: emptyList()
       }
     }
+
+    val savingsGoals = when (savingsGoalsResult) {
+      is NetworkResult.Success -> savingsGoalsResult.data
+      is NetworkResult.Error -> {
+        Log.e("RoundUpRepository", "Failed to fetch savings goals, keeping cached data")
+        _accountDetails.value?.savingsGoals ?: emptyList()
+      }
+    }
+
+    val balance = when (balanceResult) {
+      is NetworkResult.Success -> balanceResult.data.effectiveBalance.minorUnits.toGbp()
+      is NetworkResult.Error -> {
+        Log.e("RoundUpRepository", "Failed to fetch balance, keeping cached data")
+        _accountDetails.value?.balance ?: "0.00"
+      }
+    }
+
+    if (transactionsResult is NetworkResult.Success ||
+      savingsGoalsResult is NetworkResult.Success ||
+      balanceResult is NetworkResult.Success
+    ) {
+      saveToCache(
+        accounts,
+        if (transactionsResult is NetworkResult.Success) transactions else emptyList(),
+        if (savingsGoalsResult is NetworkResult.Success) savingsGoals else emptyList(),
+        account,
+        if (balanceResult is NetworkResult.Success) balanceResult.data else null,
+        shouldUpdateTransactions = transactionsResult is NetworkResult.Success,
+        shouldUpdateGoals = savingsGoalsResult is NetworkResult.Success
+      )
+    }
+
+    _accountDetails.value = AccountDetails(
+      accounts = accounts,
+      transactions = transactions,
+      savingsGoals = savingsGoals,
+      balance = balance,
+      roundUpAmount = currentRoundUpAmount
+    )
   }
 
   private suspend fun saveToCache(
@@ -143,8 +184,10 @@ class RoundUpRepositoryImpl(
     savingsGoals: List<DomainSavingsGoal>,
     account: DomainAccount,
     balance: DomainBalance?,
+    shouldUpdateTransactions: Boolean = true,
+    shouldUpdateGoals: Boolean = true
   ) {
-    database.accountDao().insertAll(accounts.map { 
+    database.accountDao().insertAll(accounts.map {
       AccountEntity(
         accountUid = it.accountUid,
         name = it.name,
@@ -152,30 +195,34 @@ class RoundUpRepositoryImpl(
       )
     })
 
-    database.transactionDao().deleteByAccount(account.accountUid)
-    database.transactionDao().insertAll(transactions.map {
-      TransactionEntity(
-        accountUid = account.accountUid,
-        direction = it.direction,
-        amountMinorUnits = it.amount.minorUnits,
-        transactionDate = it.transactionTime,
-        counterPartyName = it.counterPartyName,
-      )
-    })
+    if (shouldUpdateTransactions) {
+      database.transactionDao().deleteByAccount(account.accountUid)
+      database.transactionDao().insertAll(transactions.map {
+        TransactionEntity(
+          accountUid = account.accountUid,
+          direction = it.direction,
+          amountMinorUnits = it.amount.minorUnits,
+          transactionDate = it.transactionTime,
+          counterPartyName = it.counterPartyName,
+        )
+      })
+    }
 
-    database.savingsGoalDao().deleteByAccount(account.accountUid)
-    database.savingsGoalDao().insertAll(savingsGoals.map { 
-      SavingsGoalEntity(
-        savingsGoalUid = it.savingsGoalUid,
-        accountUid = account.accountUid,
-        name = it.name,
-        targetAmountMinorUnits = it.targetAmount.minorUnits,
-        targetAmountCurrency = it.targetAmount.currency,
-        totalSavedMinorUnits = it.totalSaved.minorUnits,
-        totalSavedCurrency = it.totalSaved.currency,
-        state = it.state,
-      )
-    })
+    if (shouldUpdateGoals) {
+      database.savingsGoalDao().deleteByAccount(account.accountUid)
+      database.savingsGoalDao().insertAll(savingsGoals.map {
+        SavingsGoalEntity(
+          savingsGoalUid = it.savingsGoalUid,
+          accountUid = account.accountUid,
+          name = it.name,
+          targetAmountMinorUnits = it.targetAmount.minorUnits,
+          targetAmountCurrency = it.targetAmount.currency,
+          totalSavedMinorUnits = it.totalSaved.minorUnits,
+          totalSavedCurrency = it.totalSaved.currency,
+          state = it.state,
+        )
+      })
+    }
 
     balance?.let {
       database.balanceDao().insert(
@@ -189,77 +236,34 @@ class RoundUpRepositoryImpl(
     }
   }
 
-  override fun addSavingsGoal(goal: DomainSavingsGoal) {
-    _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals + goal) }
-  }
+  override suspend fun addSavingsGoal(goal: DomainSavingsGoal, accountUid: String) =
+    withContext(Dispatchers.IO) {
+      _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals + goal) }
 
-  override fun removeSavingsGoal(savingsGoalUid: String) {
+      database.savingsGoalDao().insertAll(
+        listOf(
+          SavingsGoalEntity(
+            savingsGoalUid = goal.savingsGoalUid,
+            accountUid = accountUid,
+            name = goal.name,
+            targetAmountMinorUnits = goal.targetAmount.minorUnits,
+            targetAmountCurrency = goal.targetAmount.currency,
+            totalSavedMinorUnits = goal.totalSaved.minorUnits,
+            totalSavedCurrency = goal.totalSaved.currency,
+            state = goal.state,
+          )
+        )
+      )
+    }
+
+  override suspend fun removeSavingsGoal(savingsGoalUid: String) = withContext(Dispatchers.IO) {
     _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals.filter { g -> g.savingsGoalUid != savingsGoalUid }) }
+    database.savingsGoalDao().deleteBySavingsGoalUid(savingsGoalUid)
   }
 
   override fun setRoundUpAmount(amount: Int) {
     _accountDetails.update { it?.copy(roundUpAmount = amount) }
   }
-
-  override suspend fun getAccounts(): List<DomainAccount> = withContext(Dispatchers.IO) {
-    try {
-      val response = retrofitService.getAccounts(BuildConfig.API_KEY)
-      response.toListOfDomainAccounts()
-    } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error fetching accounts", e)
-      emptyList()
-    }
-  }
-
-  override suspend fun getBalance(
-    accountUid: String
-  ): DomainBalance? = withContext(Dispatchers.IO) {
-    try {
-      val balance = retrofitService.getBalance(
-        BuildConfig.API_KEY,
-        accountUid
-      )
-      balance.toDomainBalance()
-    } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error fetching balance", e)
-      null
-    }
-  }
-
-  override suspend fun getTransactions(
-    accountUid: String,
-    categoryUid: String
-  ): List<DomainTransaction> = withContext(Dispatchers.IO) {
-    try {
-      // Fetch transactions from the last 7 days
-      val changesSince =
-        ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
-      val response = retrofitService.getTransactions(
-        BuildConfig.API_KEY,
-        accountUid,
-        categoryUid,
-        changesSince
-      )
-      response.toListOfDomainTransactions()
-    } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error fetching transactions", e)
-      emptyList()
-    }
-  }
-
-  override suspend fun getSavingsGoals(accountUid: String): List<DomainSavingsGoal> =
-    withContext(Dispatchers.IO) {
-      try {
-        val goals = retrofitService.getSavingsGoals(
-          BuildConfig.API_KEY,
-          accountUid
-        )
-        goals.toListOfDomainSavingsGoals()
-      } catch (e: Exception) {
-        Log.e("RoundUpRepository", "Error fetching savings goals", e)
-        emptyList()
-      }
-    }
 
   override suspend fun createSavingsGoal(
     accountUid: String,
@@ -341,4 +345,57 @@ class RoundUpRepositoryImpl(
       false
     }
   }
+
+  private suspend fun getAccountsWithResult(): NetworkResult<List<DomainAccount>> =
+    withContext(Dispatchers.IO) {
+      try {
+        val response = retrofitService.getAccounts(BuildConfig.API_KEY)
+        NetworkResult.Success(response.toListOfDomainAccounts())
+      } catch (e: Exception) {
+        Log.e("RoundUpRepository", "Error fetching accounts", e)
+        NetworkResult.Error(e)
+      }
+    }
+
+  private suspend fun getBalanceWithResult(accountUid: String): NetworkResult<DomainBalance> =
+    withContext(Dispatchers.IO) {
+      try {
+        val balance = retrofitService.getBalance(BuildConfig.API_KEY, accountUid)
+        NetworkResult.Success(balance.toDomainBalance())
+      } catch (e: Exception) {
+        Log.e("RoundUpRepository", "Error fetching balance", e)
+        NetworkResult.Error(e)
+      }
+    }
+
+  private suspend fun getTransactionsWithResult(
+    accountUid: String,
+    categoryUid: String
+  ): NetworkResult<List<DomainTransaction>> = withContext(Dispatchers.IO) {
+    try {
+      // Fetch transactions from the last 7 days
+      val changesSince = ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
+      val response = retrofitService.getTransactions(
+        BuildConfig.API_KEY,
+        accountUid,
+        categoryUid,
+        changesSince
+      )
+      NetworkResult.Success(response.toListOfDomainTransactions())
+    } catch (e: Exception) {
+      Log.e("RoundUpRepository", "Error fetching transactions", e)
+      NetworkResult.Error(e)
+    }
+  }
+
+  private suspend fun getSavingsGoalsWithResult(accountUid: String): NetworkResult<List<DomainSavingsGoal>> =
+    withContext(Dispatchers.IO) {
+      try {
+        val goals = retrofitService.getSavingsGoals(BuildConfig.API_KEY, accountUid)
+        NetworkResult.Success(goals.toListOfDomainSavingsGoals())
+      } catch (e: Exception) {
+        Log.e("RoundUpRepository", "Error fetching savings goals", e)
+        NetworkResult.Error(e)
+      }
+    }
 }

@@ -2,9 +2,8 @@ package com.example.roundupapp.utils
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.security.SecureRandom
 
-class HelperFunctionsTest {
+class ExtensionsTest {
 
     @Test
     fun `toGbp converts minor units to formatted string`() {

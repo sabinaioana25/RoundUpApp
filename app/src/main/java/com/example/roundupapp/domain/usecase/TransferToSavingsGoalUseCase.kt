@@ -18,13 +18,15 @@ class TransferToSavingsGoalUseCase @Inject constructor(
     // Generate a unique transfer UID for the transaction
     val transferUidBase = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
 
-    val success =  repository.transferToSavingsGoal(
+    val success = repository.transferToSavingsGoal(
       accountUid = accountUid,
       savingsGoalUid = goal.savingsGoalUid,
       transferUid = transferUidBase.dropLast(4) + randomHex(4)
     )
 
-    if(success) repository.refresh()
+    if (success) {
+      repository.refreshFromNetwork()
+    }
     return success
   }
 }

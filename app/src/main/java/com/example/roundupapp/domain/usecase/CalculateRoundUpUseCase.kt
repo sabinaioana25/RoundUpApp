@@ -19,6 +19,5 @@ class CalculateRoundUpUseCase @Inject constructor(
         if (remainder == 0) 0 else 100 - remainder
       }
     repository.setRoundUpAmount(roundUpTotal)
-    repository.refresh()
   }
 }

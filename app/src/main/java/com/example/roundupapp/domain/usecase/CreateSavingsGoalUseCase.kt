@@ -23,6 +23,6 @@ class CreateSavingsGoalUseCase @Inject constructor(
       currency = "GBP"
     ) ?: return
 
-    repository.addSavingsGoal(newGoal)
+    repository.addSavingsGoal(newGoal, accountUid)
   }
 }

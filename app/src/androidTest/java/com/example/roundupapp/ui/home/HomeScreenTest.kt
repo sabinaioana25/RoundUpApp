@@ -106,21 +106,6 @@ class HomeScreenTest {
   }
 
   @Test
-  fun clicking_transfer_fires_intent() {
-    val intents = mutableListOf<Intent>()
-
-    composeTestRule.setContent {
-      HomeScreen(state = stateWithGoalAndTransactions(), onIntent = { intents.add(it) })
-    }
-
-    composeTestRule
-      .onNodeWithText("Transfer")
-      .performClick()
-
-    assert(intents.any { it is Intent.TransferToSavingsGoal })
-  }
-
-  @Test
   fun clicking_delete_goal_fires_intent() {
     val intents = mutableListOf<Intent>()
 

@@ -23,7 +23,7 @@ class UseCaseTests {
     val useCase = AccountDetailsUseCase(repository)
     useCase()
     coVerify { repository.loadFromCache() }
-    coVerify { repository.refresh() }
+    coVerify { repository.refreshFromNetwork() }
   }
 
   @Test
@@ -45,7 +45,7 @@ class UseCaseTests {
     useCase("Trip", 100)
 
     coVerify { repository.createSavingsGoal("acc123", "Trip", 10000, "GBP") }
-    coVerify { repository.addSavingsGoal(newGoal) }
+    coVerify { repository.addSavingsGoal(newGoal, "acc123") }
   }
 
   @Test
@@ -88,6 +88,6 @@ class UseCaseTests {
 
     assertTrue(result)
     coVerify { repository.transferToSavingsGoal("acc123", "goal789", any()) }
-    coVerify { repository.refresh() }
+    coVerify { repository.refreshFromNetwork() }
   }
 }

@@ -16,6 +16,8 @@ class DeleteSavingsGoalUseCase @Inject constructor(
       savingsGoalUid = savingsGoalUid
     )
 
-    if (wasDeleted) repository.removeSavingsGoal(savingsGoalUid)
+    if (wasDeleted) {
+      repository.removeSavingsGoal(savingsGoalUid)
+    }
   }
 }

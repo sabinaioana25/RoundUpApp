@@ -11,6 +11,6 @@ class AccountDetailsUseCase @Inject constructor(
 ) {
   suspend operator fun invoke() {
     repository.loadFromCache()
-    repository.refresh()
+    repository.refreshFromNetwork()
   }
 }
