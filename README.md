@@ -33,6 +33,9 @@ This is a single activity single screen application, with the showing the follow
 *   **Round Up Transfers:** The app handles the transfer of your round-up savings to the created goal.  Once the transfer is completed the option will not be available until the goal is deleted
 *   **Clean, Modern UI:** A user-friendly interface built with Jetpack Compose.
 
+<img src="https://github.com/user-attachments/assets/42bee5dc-69a0-489f-91a7-d82e88517dfb" width="200">
+
+
 ## Disclaimer
 While the purpose of the app hopefully illustrates a clear understanding of core concepts concerning Android development, there is certainly room for improvement on various areas of the app, of which I am aware but ended up not tackling or partially tackling in this submission due to time constraints. Some of them are:
 - Error state management especially in the ViewModel
@@ -40,7 +43,7 @@ While the purpose of the app hopefully illustrates a clear understanding of core
 - Accounting for already made round-ups
 - UI and theming
 
->[!info]
+>[!Note]
 >Regarding the last point, for practicality after a goal is created, the user has the option to do a rounding up transfer once, after which the button disappears. Once the goal is deleted and another one is recreated, the transfer option appears again, regardless of the fact that the last 7 days round ups were already transferred.
 
 I hope you enjoy the app. Bank responsibly :) 
