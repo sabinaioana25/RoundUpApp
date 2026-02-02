@@ -34,6 +34,10 @@ import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Implementation of the [RoundUpRepository] that uses a local database as a cache
+ * and a remote API as the single source of truth
+ */
 class RoundUpRepositoryImpl(
   private val database: RoundUpDatabase
 ) : RoundUpRepository {
@@ -140,7 +144,7 @@ class RoundUpRepositoryImpl(
     account: DomainAccount,
     balance: DomainBalance?,
   ) {
-    database.accountDao().insertAll(accounts.map {
+    database.accountDao().insertAll(accounts.map { 
       AccountEntity(
         accountUid = it.accountUid,
         name = it.name,
@@ -160,7 +164,7 @@ class RoundUpRepositoryImpl(
     })
 
     database.savingsGoalDao().deleteByAccount(account.accountUid)
-    database.savingsGoalDao().insertAll(savingsGoals.map {
+    database.savingsGoalDao().insertAll(savingsGoals.map { 
       SavingsGoalEntity(
         savingsGoalUid = it.savingsGoalUid,
         accountUid = account.accountUid,
@@ -227,6 +231,7 @@ class RoundUpRepositoryImpl(
     categoryUid: String
   ): List<DomainTransaction> = withContext(Dispatchers.IO) {
     try {
+      // Fetch transactions from the last 7 days
       val changesSince =
         ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
       val response = retrofitService.getTransactions(

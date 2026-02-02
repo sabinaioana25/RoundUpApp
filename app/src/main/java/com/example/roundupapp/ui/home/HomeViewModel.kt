@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * The HomeScreen's ViewModel
+ * Manages the UI state and handles user intents
+ */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
   private val repository: RoundUpRepository,
@@ -35,6 +39,9 @@ class HomeViewModel @Inject constructor(
     loadData()
   }
 
+  /**
+   * Loads initial account details and updates the UI state
+   */
   private fun loadData() {
     repository.accountDetails
       .onEach { accountDetails ->
@@ -83,7 +90,6 @@ class HomeViewModel @Inject constructor(
     _state.update { it.copy(error = null) }
     createSavingsGoalUseCase(name, targetAmount)
   }
-
 
   fun deleteSavingsGoal() = viewModelScope.launch {
     deleteSavingsGoalUseCase()

@@ -28,6 +28,7 @@ fun HomeScreenHoist(
   viewModel: HomeViewModel,
   modifier: Modifier = Modifier,
 ) {
+  // lifecycle-aware collection
   val state by viewModel.state.collectAsState()
   val onIntent: (Intent) -> Unit = viewModel::processIntent
   HomeScreen(
@@ -36,6 +37,9 @@ fun HomeScreenHoist(
   )
 }
 
+/**
+ * Displays the user's balance, savings goals, and recent transactions
+ */
 @Composable
 fun HomeScreen(
   state: ScreenState,

@@ -7,11 +7,19 @@ import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.models.DomainTransaction
 import kotlinx.coroutines.flow.StateFlow
 
+/**
+ * Repository for managing user account data. This interface defines methods for
+ * fetching and caching account details, balances, transactions, and savings goals.
+ *
+ * It includes functions for creating and deleting savings goals, and for
+ * handling round-up calculations and transfers.
+ */
 interface RoundUpRepository {
 
   val accountDetails: StateFlow<AccountDetails?>
 
   suspend fun loadFromCache()
+
   suspend fun refresh()
 
   suspend fun getAccounts(): List<DomainAccount>
@@ -42,6 +50,7 @@ interface RoundUpRepository {
   ): Boolean
 
   fun addSavingsGoal(goal: DomainSavingsGoal)
+
   fun removeSavingsGoal(savingsGoalUid: String)
 
   fun setRoundUpAmount(amount: Int)

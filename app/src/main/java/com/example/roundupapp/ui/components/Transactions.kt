@@ -22,7 +22,6 @@ import com.example.roundupapp.domain.models.DomainAmount
 import com.example.roundupapp.domain.models.DomainTransaction
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 
-
 @Composable
 fun Transactions(
   modifier: Modifier = Modifier,

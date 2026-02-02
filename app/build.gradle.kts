@@ -59,6 +59,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.junit)
     coreLibraryDesugaring(libs.desugar.jdk)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
@@ -98,9 +99,6 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
-    testImplementation(libs.mockito.inline)
-    testImplementation(libs.mockito.junit)
-    testImplementation(libs.mockito.kotlin)
     testImplementation(libs.mockk)
     testImplementation(libs.room.testing)
     testImplementation(libs.turbine)

@@ -36,6 +36,9 @@ private val retrofit = Retrofit.Builder()
   .baseUrl(BASE_URL)
   .build()
 
+/**
+ * Retrofit service for interacting with the Starling Bank API
+ */
 interface RoundUpApiService {
 
   @GET("accounts")

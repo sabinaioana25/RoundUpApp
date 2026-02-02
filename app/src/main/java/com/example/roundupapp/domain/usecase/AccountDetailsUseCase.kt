@@ -3,6 +3,9 @@ package com.example.roundupapp.domain.usecase
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
+/**
+ * Use case for retrieving account details
+ */
 class AccountDetailsUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {

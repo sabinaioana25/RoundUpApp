@@ -3,6 +3,12 @@ package com.example.roundupapp.domain.usecase
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
+/**
+ * Use case for creating a new savings goal
+ *
+ * It retrieves the account UID, creates the goal with the specified name and target amount,
+ * and then adds the new goal to the repository
+ */
 class CreateSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
