@@ -4,7 +4,8 @@ import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
 /**
- * Use case for retrieving account details
+ * Loads account details from cache and refreshes from network
+ * Used to initialize and update account data in the application
  */
 class AccountDetailsUseCase @Inject constructor(
   private val repository: RoundUpRepository

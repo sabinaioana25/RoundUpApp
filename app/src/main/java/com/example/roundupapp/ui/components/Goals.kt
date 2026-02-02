@@ -39,7 +39,11 @@ import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TOTAL_SAVED
 import com.example.roundupapp.utils.toGbp
 
-
+/**
+ * Savings goals management component
+ * Displays either a create goal button (when empty) or the first savings goal
+ * with details and actions for transferring round-up amounts or deleting the goal
+ */
 @Composable
 fun Goals(
   modifier: Modifier = Modifier,
@@ -49,6 +53,7 @@ fun Goals(
 
   var showCreateGoalDialog by rememberSaveable { mutableStateOf(false) }
 
+  // Show create button if no goals exist
   if (state.savingsGoals.isEmpty()) {
     Button(onClick = { showCreateGoalDialog = true }) {
       Text(GOALS_CARD_BUTTON_CREATE_GOAL)
@@ -68,6 +73,10 @@ fun Goals(
   CreatedGoal(state, onIntent)
 }
 
+/**
+ * Displays the first savings goal with its details and action buttons
+ * Shows round-up transfer option only when goal has no savings yet
+ */
 @Composable
 private fun CreatedGoal(
   state: ScreenState,
@@ -111,6 +120,7 @@ private fun CreatedGoal(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Show transfer option only if no savings yet
         if (savingsGoal.totalSaved.minorUnits == 0) {
           Row(
             modifier = Modifier.fillMaxWidth(),

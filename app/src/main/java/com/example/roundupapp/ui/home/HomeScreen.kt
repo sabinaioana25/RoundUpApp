@@ -24,6 +24,10 @@ import com.example.roundupapp.ui.components.aListOfTransactions
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants
 
+/**
+ * Main home screen displaying account balance, savings goals, and transaction history
+ * Uses a hoisted pattern to separate state management from UI composition
+ */
 @Composable
 fun HomeScreenHoist(
   viewModel: HomeViewModel,
@@ -99,7 +103,6 @@ fun HomeScreenHoistPreview() {
     )
   }
 }
-
 
 val aScreenState = ScreenState(
   isLoading = false,

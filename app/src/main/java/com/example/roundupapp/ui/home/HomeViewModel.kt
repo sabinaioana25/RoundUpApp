@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 /**
- * Manages the UI state and handles user intents
+ * ViewModel for the home screen managing account details, savings goals, and round-up transfers
+ * Handles user intents and updates UI state based on repository data
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(

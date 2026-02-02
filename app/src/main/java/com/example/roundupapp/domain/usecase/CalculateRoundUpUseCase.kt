@@ -4,7 +4,9 @@ import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
 /**
- * Use case for calculating the total round-up amount from all outgoing transactions
+ * Calculates total round-up amount from all outgoing transactions
+ * Rounds each transaction up to the nearest pound and stores the sum
+ *
  */
 class CalculateRoundUpUseCase @Inject constructor(
   private val repository: RoundUpRepository

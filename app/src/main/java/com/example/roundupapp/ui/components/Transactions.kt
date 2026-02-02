@@ -23,11 +23,18 @@ import com.example.roundupapp.domain.models.DomainTransaction
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TEXT_TRANSACTIONS
 
+/**
+ * Transaction list component displaying transactions grouped by date
+ * Shows incoming transactions in green and outgoing in default color
+ * Dates are formatted as "Today", "Yesterday", or "MMM dd, yyyy"
+ */
 @Composable
 fun Transactions(
   modifier: Modifier = Modifier,
   transactions: List<DomainTransaction>
 ) {
+
+  // group transactions by date and sort in descending order
   val groups: Map<String, List<DomainTransaction>> = transactions
     .groupBy { it.transactionTime }
     .toSortedMap(compareByDescending { it })
@@ -48,6 +55,7 @@ fun Transactions(
 
     LazyColumn(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
       groups.forEach { (date, itemsForDate) ->
+        // sticky date header for each group
         stickyHeader {
           Text(
             text = formatDate(date),
@@ -81,6 +89,9 @@ fun Transactions(
   }
 }
 
+/**
+ * Formats date string to friendly labels: "Today", "Yesterday", or "MMM dd, yyyy"
+ */
 private fun formatDate(dateString: String): String {
   val today = java.time.LocalDate.now()
   val yesterday = today.minusDays(1)

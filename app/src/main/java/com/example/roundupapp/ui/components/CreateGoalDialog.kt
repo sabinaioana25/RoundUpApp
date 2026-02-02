@@ -26,6 +26,11 @@ import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_DIALOG_TIT
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
+/**
+ * Dialog for creating a new savings goal
+ * Collects goal name and target amount with input validation for decimal currency values
+ */
+
 @Composable
 fun CreateGoalDialog(
   onConfirm: (name: String, amount: Int) -> Unit,
@@ -51,6 +56,7 @@ fun CreateGoalDialog(
         TextField(
           value = targetAmount,
           onValueChange = {
+            // allow only valid decimal numbers with up to 2 decimal places
             if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
               targetAmount = it
             }

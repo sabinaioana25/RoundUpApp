@@ -5,7 +5,8 @@ import com.example.roundupapp.utils.randomHex
 import javax.inject.Inject
 
 /**
- * Use case for transferring the accumulated round-up amount to the user's first savings goal
+ * Transfers the calculated round-up amount to the first available savings goal
+ * Generates a unique transfer UID and refreshes account data on success
  */
 class TransferToSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
@@ -15,7 +16,7 @@ class TransferToSavingsGoalUseCase @Inject constructor(
     val accountUid = details.accounts.firstOrNull()?.accountUid ?: return false
     val goal = details.savingsGoals.firstOrNull() ?: return false
 
-    // Generate a unique transfer UID for the transaction
+    // Random-generated transfer UID for the transfer
     val transferUidBase = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
 
     val success = repository.transferToSavingsGoal(
