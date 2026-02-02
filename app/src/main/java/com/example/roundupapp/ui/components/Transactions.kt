@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.example.roundupapp.domain.models.DomainAmount
 import com.example.roundupapp.domain.models.DomainTransaction
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TEXT_TRANSACTIONS
 
 @Composable
 fun Transactions(
@@ -41,7 +42,7 @@ fun Transactions(
         .fillMaxWidth()
         .padding(16.dp),
       textAlign = TextAlign.Center,
-      text = "Transactions",
+      text = GOALS_CARD_COMPOSABLE_TEXT_TRANSACTIONS,
       style = MaterialTheme.typography.labelMedium
     )
 

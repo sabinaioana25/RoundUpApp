@@ -8,6 +8,8 @@ import com.example.roundupapp.domain.usecase.CalculateRoundUpUseCase
 import com.example.roundupapp.domain.usecase.CreateSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.DeleteSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.TransferToSavingsGoalUseCase
+import com.example.roundupapp.utils.Constants
+import com.example.roundupapp.utils.Constants.HOME_SCREEN_ERROR_EMPTY_STATE
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,8 +20,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 /**
- * The HomeScreen's ViewModel
  * Manages the UI state and handles user intents
  */
 @HiltViewModel
@@ -58,7 +60,7 @@ class HomeViewModel @Inject constructor(
             )
           }
         } else {
-          _state.update { it.copy(error = "No data to display") }
+          _state.update { it.copy(error = HOME_SCREEN_ERROR_EMPTY_STATE) }
         }
       }
       .launchIn(viewModelScope)
@@ -79,12 +81,12 @@ class HomeViewModel @Inject constructor(
 
   fun createSavingsGoal(name: String, targetAmount: Int) = viewModelScope.launch {
     if (name.isBlank()) {
-      _state.update { it.copy(error = "Name cannot be blank") }
+      _state.update { it.copy(error = Constants. HOME_SCREEN_ERROR_TEXT_EDIT_NAME) }
       return@launch
     }
 
     if (targetAmount == 0) {
-      _state.update { it.copy(error = "Amount cannot be blank") }
+      _state.update { it.copy(error = Constants.HOME_SCREEN_ERROR_TEXT_EDIT_AMOUNT) }
       return@launch
     }
     _state.update { it.copy(error = null) }

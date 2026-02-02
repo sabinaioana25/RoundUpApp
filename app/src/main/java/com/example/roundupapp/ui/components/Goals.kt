@@ -30,7 +30,15 @@ import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.ui.home.Intent
 import com.example.roundupapp.ui.home.ScreenState
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
+import com.example.roundupapp.utils.Constants.GOALS_CARD_BUTTON_CREATE_GOAL
+import com.example.roundupapp.utils.Constants.GOALS_CARD_BUTTON_DELETE_GOAL
+import com.example.roundupapp.utils.Constants.GOALS_CARD_BUTTON_TRANSFER_AMOUNT
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_ROUNDUP_TEXT
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TOTAL_SAVED
 import com.example.roundupapp.utils.toGbp
+
 
 @Composable
 fun Goals(
@@ -43,7 +51,7 @@ fun Goals(
 
   if (state.savingsGoals.isEmpty()) {
     Button(onClick = { showCreateGoalDialog = true }) {
-      Text("Create Goal")
+      Text(GOALS_CARD_BUTTON_CREATE_GOAL)
     }
   }
 
@@ -81,7 +89,7 @@ private fun CreatedGoal(
         Text(
           modifier = Modifier.fillMaxWidth(),
           textAlign = TextAlign.Center,
-          text = "Goal",
+          text = GOALS_CARD_COMPOSABLE_NAME_GOAL,
           style = MaterialTheme.typography.labelMedium
         )
 
@@ -92,12 +100,12 @@ private fun CreatedGoal(
         )
 
         Text(
-          text = "Total saved: ${savingsGoal.totalSaved.minorUnits.toGbp()}",
+          text = "$GOALS_CARD_COMPOSABLE_TOTAL_SAVED: ${savingsGoal.totalSaved.minorUnits.toGbp()}",
           style = MaterialTheme.typography.bodyMedium
         )
 
         Text(
-          text = "Target: ${savingsGoal.targetAmount.minorUnits.toGbp()}",
+          text = "$GOALS_CARD_COMPOSABLE_TARGET: ${savingsGoal.targetAmount.minorUnits.toGbp()}",
           style = MaterialTheme.typography.bodyMedium
         )
 
@@ -111,7 +119,7 @@ private fun CreatedGoal(
           ) {
             Column {
               Text(
-                text = "Round-up available",
+                text = GOALS_CARD_COMPOSABLE_ROUNDUP_TEXT,
                 style = MaterialTheme.typography.bodySmall
               )
               Text(
@@ -123,7 +131,7 @@ private fun CreatedGoal(
             Button(onClick = {
               onIntent(Intent.TransferToSavingsGoal)
             }) {
-              Text("Transfer")
+              Text(GOALS_CARD_BUTTON_TRANSFER_AMOUNT)
             }
           }
         }
@@ -134,7 +142,7 @@ private fun CreatedGoal(
           },
           modifier = Modifier.fillMaxWidth()
         ) {
-          Text("Delete Goal")
+          Text(GOALS_CARD_BUTTON_DELETE_GOAL)
         }
       }
     }

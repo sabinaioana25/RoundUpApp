@@ -22,6 +22,7 @@ import com.example.roundupapp.ui.components.Transactions
 import com.example.roundupapp.ui.components.aListOfDomainSavingGoals
 import com.example.roundupapp.ui.components.aListOfTransactions
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
+import com.example.roundupapp.utils.Constants
 
 @Composable
 fun HomeScreenHoist(
@@ -99,9 +100,10 @@ fun HomeScreenHoistPreview() {
   }
 }
 
+
 val aScreenState = ScreenState(
   isLoading = false,
-  tasks = listOf("text1234"),
+  tasks = listOf(Constants.HOME_SCREEN_EMPTY_STATE_PREVIEW_TASK),
   error = null,
   transactions = aListOfTransactions,
   balance = "£1000",

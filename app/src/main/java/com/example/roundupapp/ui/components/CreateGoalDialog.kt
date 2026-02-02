@@ -20,6 +20,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
+import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CANCEL
+import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CREATE
+import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
+import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
 @Composable
 fun CreateGoalDialog(
@@ -32,13 +37,13 @@ fun CreateGoalDialog(
 
   AlertDialog(
     onDismissRequest = onDismiss,
-    title = { Text("Create a new Savings Goal") },
+    title = { Text(ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE) },
     text = {
       Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         TextField(
           value = goalName,
           onValueChange = { goalName = it },
-          label = { Text("Goal Name") },
+          label = { Text(GOALS_CARD_COMPOSABLE_NAME_GOAL) },
           keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
           keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
           singleLine = true
@@ -50,7 +55,7 @@ fun CreateGoalDialog(
               targetAmount = it
             }
           },
-          label = { Text("Target Amount") },
+          label = { Text(GOALS_CARD_COMPOSABLE_TARGET) },
           prefix = { Text("£") },
           keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Decimal,
@@ -71,12 +76,12 @@ fun CreateGoalDialog(
           }
         })
       {
-        Text("Create")
+        Text(ALERT_DIALOG_COMPOSABLE_BUTTON_CREATE)
       }
     },
     dismissButton = {
       Button(onClick = onDismiss) {
-        Text("Cancel")
+        Text(ALERT_DIALOG_COMPOSABLE_BUTTON_CANCEL)
       }
     }
   )
