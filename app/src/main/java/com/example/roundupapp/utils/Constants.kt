@@ -43,7 +43,6 @@ object Constants {
     const val ALERT_TRANSFERRING_ERROR= "Error transferring to savings goal"
     const val ALERT_TRANSFERRING_FAILURE = "Failed to transfer funds"
     const val ALERT_DIALOG_CURRENCY_PREFIX = "£"
-    const val ALERT_DIALOG_DECIMAL_REGEX = "^\\d*\\.?\\d{0,2}$"
     const val ALERT_SAMPLE_GOAL_NAME = "Holiday Fund"
 
     //RoundUpRepositoryImpl

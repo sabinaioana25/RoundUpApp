@@ -24,7 +24,7 @@ import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CAN
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CREATE
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_CURRENCY_PREFIX
-import com.example.roundupapp.utils.Constants.ALERT_DIALOG_DECIMAL_REGEX
+//import com.example.roundupapp.utils.Constants.ALERT_DIALOG_DECIMAL_REGEX
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
@@ -59,7 +59,7 @@ fun CreateGoalDialog(
           value = targetAmount,
           onValueChange = {
             // allow only valid decimal numbers with up to 2 decimal places
-            if (it.matches(Regex(ALERT_DIALOG_DECIMAL_REGEX))) {
+            if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
               targetAmount = it
             }
           },
@@ -80,8 +80,7 @@ fun CreateGoalDialog(
       Button(
         onClick = {
           if (goalName.isNotBlank() && targetAmount.isNotBlank()) {
-            val amountInMinorUnits = (targetAmount.toDoubleOrNull() ?: 0.0) * 100
-            onConfirm(goalName, amountInMinorUnits.toInt())
+            onConfirm(goalName, targetAmount.toDoubleOrNull()?.toInt() ?: 0)
           }
         })
       {
