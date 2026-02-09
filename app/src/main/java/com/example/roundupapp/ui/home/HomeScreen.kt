@@ -233,7 +233,7 @@ fun HomeScreenWithDataPreview() {
   RoundUpAppTheme {
     HomeScreen(
       state = ScreenState(
-        loadingState = LoadingState.Idle,
+        loadingState = LoadingState.InitialLoading,
         transactions = aListOfTransactions,
         balance = HOME_SCREEN_SAMPLE_BALANCE,
         savingsGoals = aListOfDomainSavingGoals,

@@ -205,7 +205,7 @@ private fun CreatedGoal(
 fun GoalsEmptyPreview() {
   Goals(
     state = ScreenState(
-      loadingState = LoadingState.Idle,
+      loadingState = LoadingState.InitialLoading,
       transactions = emptyList(),
       balance = HOME_SCREEN_SAMPLE_BALANCE,
       savingsGoals = emptyList(),
@@ -221,7 +221,7 @@ fun GoalsWithGoalPreview() {
   RoundUpAppTheme {
     Goals(
       state = ScreenState(
-        loadingState = LoadingState.Idle,
+        loadingState = LoadingState.InitialLoading,
         transactions = emptyList(),
         balance = HOME_SCREEN_SAMPLE_BALANCE,
         savingsGoals = aListOfDomainSavingGoals,

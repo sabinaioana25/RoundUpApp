@@ -80,7 +80,8 @@ fun CreateGoalDialog(
       Button(
         onClick = {
           if (goalName.isNotBlank() && targetAmount.isNotBlank()) {
-            onConfirm(goalName, targetAmount.toDoubleOrNull()?.toInt() ?: 0)
+            val amountInMinorUnits = (targetAmount.toDoubleOrNull() ?: 0.0) * 100
+            onConfirm(goalName, amountInMinorUnits.toInt())
           }
         })
       {
