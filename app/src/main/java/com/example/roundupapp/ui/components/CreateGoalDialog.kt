@@ -18,11 +18,13 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.example.roundupapp.ui.theme.Dimens
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CANCEL
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CREATE
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE
+import com.example.roundupapp.utils.Constants.ALERT_DIALOG_CURRENCY_PREFIX
+import com.example.roundupapp.utils.Constants.ALERT_DIALOG_DECIMAL_REGEX
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
@@ -44,7 +46,7 @@ fun CreateGoalDialog(
     onDismissRequest = onDismiss,
     title = { Text(ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE) },
     text = {
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)) {
         TextField(
           value = goalName,
           onValueChange = { goalName = it },
@@ -57,12 +59,12 @@ fun CreateGoalDialog(
           value = targetAmount,
           onValueChange = {
             // allow only valid decimal numbers with up to 2 decimal places
-            if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+            if (it.matches(Regex(ALERT_DIALOG_DECIMAL_REGEX))) {
               targetAmount = it
             }
           },
           label = { Text(GOALS_CARD_COMPOSABLE_TARGET) },
-          prefix = { Text("£") },
+          prefix = { Text(ALERT_DIALOG_CURRENCY_PREFIX) },
           keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Decimal,
             imeAction = ImeAction.Done

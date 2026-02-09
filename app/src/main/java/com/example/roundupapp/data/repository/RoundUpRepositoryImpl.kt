@@ -25,6 +25,23 @@ import com.example.roundupapp.domain.models.toListOfDomainAccounts
 import com.example.roundupapp.domain.models.toListOfDomainSavingsGoals
 import com.example.roundupapp.domain.models.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
+import com.example.roundupapp.utils.Constants.ALERT_TRANSFERRING_ERROR
+import com.example.roundupapp.utils.Constants.GOALS_ERROR_CREATING
+import com.example.roundupapp.utils.Constants.GOALS_ERROR_DELETING
+import com.example.roundupapp.utils.Constants.REPO_CURRENCY_GBP
+import com.example.roundupapp.utils.Constants.REPO_DEFAULT_BALANCE
+import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_ACCOUNTS
+import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_BALANCE
+import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_SAVINGS_GOALS
+import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_TRANSACTIONS
+import com.example.roundupapp.utils.Constants.REPO_FETCHING_ACCOUNTS_ERROR
+import com.example.roundupapp.utils.Constants.REPO_FETCHING_BALANCE_ERROR
+import com.example.roundupapp.utils.Constants.REPO_FETCHING_SAVINGS_GOALS_ERROR
+import com.example.roundupapp.utils.Constants.REPO_FETCHING_TRANSACTIONS_ERROR
+import com.example.roundupapp.utils.Constants.REPO_NO_ACCOUNTS_FOUND
+import com.example.roundupapp.utils.Constants.REPO_NO_ACCOUNTS_IN_CACHE
+import com.example.roundupapp.utils.Constants.REPO_ROUND_UP_TRANSFER_REFERENCE
+import com.example.roundupapp.utils.Constants.REPO_SAVINGS_GOAL_STATE_ACTIVE
 import com.example.roundupapp.utils.toGbp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +63,10 @@ class RoundUpRepositoryImpl(
   private val _accountDetails = MutableStateFlow<AccountDetails?>(null)
   override val accountDetails: StateFlow<AccountDetails?> = _accountDetails.asStateFlow()
 
+  companion object {
+    private val TAG = RoundUpRepositoryImpl::class.java.simpleName
+  }
+
   override suspend fun loadFromCache() {
     val accounts = database.accountDao().getAll().map { entity ->
       DomainAccount(
@@ -56,7 +77,7 @@ class RoundUpRepositoryImpl(
       )
     }
     if (accounts.isEmpty()) {
-      Log.d("RoundUpRepository", "No accounts in cache")
+      Log.d(TAG, REPO_NO_ACCOUNTS_IN_CACHE)
       return
     }
 
@@ -68,7 +89,7 @@ class RoundUpRepositoryImpl(
         DomainTransaction(
           direction = entity.direction,
           amount = DomainAmount(
-            currency = "GBP",
+            currency = REPO_CURRENCY_GBP,
             minorUnits = entity.amountMinorUnits,
             gbpUnits = entity.amountMinorUnits.toGbp()
           ),
@@ -98,7 +119,7 @@ class RoundUpRepositoryImpl(
       }
 
     val balanceEntity = database.balanceDao().get()
-    val balance = balanceEntity?.effectiveBalanceMinorUnits?.toGbp() ?: "0.00"
+    val balance = balanceEntity?.effectiveBalanceMinorUnits?.toGbp() ?: REPO_DEFAULT_BALANCE
 
     _accountDetails.value = AccountDetails(
       accounts = accounts,
@@ -113,13 +134,13 @@ class RoundUpRepositoryImpl(
 
     val accountsResult = getAccountsWithResult()
     if (accountsResult is NetworkResult.Error) {
-      Log.e("RoundUpRepository", "Failed to fetch accounts: ${accountsResult.exception.message}")
+      Log.e(TAG, "$REPO_ERROR_FETCHING_ACCOUNTS${accountsResult.exception.message}")
       return
     }
 
     val accounts = (accountsResult as NetworkResult.Success).data
     if (accounts.isEmpty()) {
-      Log.w("RoundUpRepository", "No accounts found")
+      Log.w(TAG, REPO_NO_ACCOUNTS_FOUND)
       return
     }
 
@@ -133,7 +154,7 @@ class RoundUpRepositoryImpl(
     val transactions = when (transactionsResult) {
       is NetworkResult.Success -> transactionsResult.data
       is NetworkResult.Error -> {
-        Log.e("RoundUpRepository", "Failed to fetch transactions, keeping cached data")
+        Log.e(TAG, REPO_ERROR_FETCHING_TRANSACTIONS)
         _accountDetails.value?.transactions ?: emptyList()
       }
     }
@@ -141,7 +162,7 @@ class RoundUpRepositoryImpl(
     val savingsGoals = when (savingsGoalsResult) {
       is NetworkResult.Success -> savingsGoalsResult.data
       is NetworkResult.Error -> {
-        Log.e("RoundUpRepository", "Failed to fetch savings goals, keeping cached data")
+        Log.e(TAG, REPO_ERROR_FETCHING_SAVINGS_GOALS)
         _accountDetails.value?.savingsGoals ?: emptyList()
       }
     }
@@ -149,8 +170,8 @@ class RoundUpRepositoryImpl(
     val balance = when (balanceResult) {
       is NetworkResult.Success -> balanceResult.data.effectiveBalance.minorUnits.toGbp()
       is NetworkResult.Error -> {
-        Log.e("RoundUpRepository", "Failed to fetch balance, keeping cached data")
-        _accountDetails.value?.balance ?: "0.00"
+        Log.e(TAG, REPO_ERROR_FETCHING_BALANCE)
+        _accountDetails.value?.balance ?: REPO_DEFAULT_BALANCE
       }
     }
 
@@ -187,7 +208,7 @@ class RoundUpRepositoryImpl(
     shouldUpdateTransactions: Boolean = true,
     shouldUpdateGoals: Boolean = true
   ) {
-    database.accountDao().insertAll(accounts.map {
+    database.accountDao().insertAll(accounts.map { 
       AccountEntity(
         accountUid = it.accountUid,
         name = it.name,
@@ -274,9 +295,9 @@ class RoundUpRepositoryImpl(
     try {
       val request = CreateSavingsGoalRequest(
         name = name,
-        currency = "GBP",
+        currency = REPO_CURRENCY_GBP,
         target = NetworkAmount(
-          currency = "GBP",
+          currency = REPO_CURRENCY_GBP,
           minorUnits = amountMinorUnits
         )
       )
@@ -291,14 +312,14 @@ class RoundUpRepositoryImpl(
           name = name,
           target = request.target,
           totalSaved = NetworkAmount(
-            currency = "GBP",
+            currency = REPO_CURRENCY_GBP,
             minorUnits = 0
           ),
-          state = "ACTIVE"
+          state = REPO_SAVINGS_GOAL_STATE_ACTIVE
         )
       )
     } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error creating savings goal", e)
+      Log.e(TAG, GOALS_ERROR_CREATING, e)
       null
     }
   }
@@ -315,7 +336,7 @@ class RoundUpRepositoryImpl(
       )
       response.isSuccessful
     } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error deleting savings goal", e)
+      Log.e(TAG, GOALS_ERROR_DELETING, e)
       false
     }
   }
@@ -333,15 +354,15 @@ class RoundUpRepositoryImpl(
         transferUid,
         body = CreateAmountTransferRequest(
           amount = NetworkAmount(
-            currency = "GBP",
+            currency = REPO_CURRENCY_GBP,
             minorUnits = _accountDetails.value?.roundUpAmount ?: 0
           ),
-          reference = "Round-up transfer"
+          reference = REPO_ROUND_UP_TRANSFER_REFERENCE
         )
       )
       response.transferUid == transferUid
     } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error transferring to savings goal", e)
+      Log.e(TAG, ALERT_TRANSFERRING_ERROR, e)
       false
     }
   }
@@ -352,7 +373,7 @@ class RoundUpRepositoryImpl(
         val response = retrofitService.getAccounts(BuildConfig.API_KEY)
         NetworkResult.Success(response.toListOfDomainAccounts())
       } catch (e: Exception) {
-        Log.e("RoundUpRepository", "Error fetching accounts", e)
+        Log.e(TAG, REPO_FETCHING_ACCOUNTS_ERROR, e)
         NetworkResult.Error(e)
       }
     }
@@ -363,7 +384,7 @@ class RoundUpRepositoryImpl(
         val balance = retrofitService.getBalance(BuildConfig.API_KEY, accountUid)
         NetworkResult.Success(balance.toDomainBalance())
       } catch (e: Exception) {
-        Log.e("RoundUpRepository", "Error fetching balance", e)
+        Log.e(TAG, REPO_FETCHING_BALANCE_ERROR, e)
         NetworkResult.Error(e)
       }
     }
@@ -383,7 +404,7 @@ class RoundUpRepositoryImpl(
       )
       NetworkResult.Success(response.toListOfDomainTransactions())
     } catch (e: Exception) {
-      Log.e("RoundUpRepository", "Error fetching transactions", e)
+      Log.e(TAG, REPO_FETCHING_TRANSACTIONS_ERROR, e)
       NetworkResult.Error(e)
     }
   }
@@ -394,7 +415,7 @@ class RoundUpRepositoryImpl(
         val goals = retrofitService.getSavingsGoals(BuildConfig.API_KEY, accountUid)
         NetworkResult.Success(goals.toListOfDomainSavingsGoals())
       } catch (e: Exception) {
-        Log.e("RoundUpRepository", "Error fetching savings goals", e)
+        Log.e(TAG, REPO_FETCHING_SAVINGS_GOALS_ERROR, e)
         NetworkResult.Error(e)
       }
     }
