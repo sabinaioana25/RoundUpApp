@@ -74,13 +74,15 @@ class HomeViewModel @Inject constructor(
               accountUid = accountDetails.accounts.firstOrNull()?.accountUid ?: "",
               defaultCategory = accountDetails.accounts.firstOrNull()?.defaultCategory ?: "",
               roundedAmount = accountDetails.roundUpAmount,
+              loadingState = if (it.isInitialLoading) LoadingState.Idle else it.loadingState,
               error = null
             )
           }
         } else if (!_state.value.isInitialLoading) {
           _state.update {
             it.copy(
-              error = UiError.DataError(HOME_SCREEN_ERROR_EMPTY_STATE)
+              error = UiError.DataError(HOME_SCREEN_ERROR_EMPTY_STATE),
+              loadingState = LoadingState.Idle
             )
           }
         }
@@ -94,7 +96,6 @@ class HomeViewModel @Inject constructor(
         _state.update { it.copy(loadingState = LoadingState.InitialLoading, error = null) }
         accountDetailsUseCase()
         calculateRoundUpUseCase()
-        _state.update { it.copy(loadingState = LoadingState.Idle) }
       } catch (e: Exception) {
         Log.e(TAG, HOME_SCREEN_ERROR_LOADING_INITIAL_DATA, e)
         _state.update {
@@ -212,7 +213,9 @@ class HomeViewModel @Inject constructor(
             error = null
           )
         }
+
         deleteSavingsGoalUseCase()
+
         _state.update { it.copy(loadingState = LoadingState.Idle) }
       } catch (e: Exception) {
         Log.e(TAG, GOALS_ERROR_DELETING, e)
