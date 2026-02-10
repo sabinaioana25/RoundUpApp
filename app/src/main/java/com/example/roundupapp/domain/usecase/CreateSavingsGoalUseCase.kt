@@ -1,6 +1,6 @@
 package com.example.roundupapp.domain.usecase
 
-import com.example.roundupapp.data.NetworkResult
+import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
@@ -17,23 +17,32 @@ class CreateSavingsGoalUseCase @Inject constructor(
     name: String,
     amountMinorUnits: Int,
     currency: String
-  ): Result<DomainSavingsGoal> =
-    try {
-      repository.createSavingsGoalsRequest(accountUid, name, currency, amountMinorUnits * 100)
+  ): Result<DomainSavingsGoal> {
+    return try {
+      // Create the SavingsGoal
+      val createResult = repository.createSavingsGoalsRequest(accountUid, name, currency, amountMinorUnits * 100)
 
-      val goal = when (val goals = repository.getSavingsGoalsWithResult(accountUid)) {
-        is NetworkResult.Success -> {
-          val fetchedGoal = goals.data.first()
-          repository.cacheSavingsGoal(accountUid, fetchedGoal)
-          fetchedGoal
+      if (createResult is DataResult.Error) {
+        return Result.failure(createResult.exception)
+      }
+
+      // Fetch the created goal from the server to get full details
+      when (val goalsResult = repository.getSavingsGoalsWithResult(accountUid)) {
+        is DataResult.Success -> {
+          val createdGoal = goalsResult.data.firstOrNull()
+            ?: return Result.failure(Exception("Failed to fetch created goal"))
+
+          // Cache the new goal
+          repository.cacheSavingsGoal(accountUid, createdGoal)
+          Result.success(createdGoal)
         }
 
-        is NetworkResult.Error -> {
-          throw goals.exception
+        is DataResult.Error -> {
+          Result.failure(goalsResult.exception)
         }
       }
-      Result.success(goal)
     } catch (e: Exception) {
       Result.failure(e)
     }
+  }
 }

@@ -21,7 +21,6 @@ object Constants {
   const val GOALS_CARD_COMPOSABLE_TARGET = "Target"
   const val GOALS_NAME_BLANK_WARNING = "Name cannot be blank"
   const val GOALS_VALUE_MUST_BE_GREATER_THAN_ZERO = "Value must be greater than zero"
-  const val GOALS_ERROR_CREATING = "Error creating goal"
   const val GOALS_CREATING_FAILURE = "Failed to create goal"
   const val GOALS_NO_SAVINGS_GOALS_TO_DELETE = "No savings goals to delete"
   const val GOALS_FAILURE_DELETING = "Failed to delete goal"
@@ -46,15 +45,9 @@ object Constants {
   const val ALERT_DIALOG_CURRENCY_PREFIX = "£"
   const val ALERT_SAMPLE_GOAL_NAME = "Holiday Fund"
 
-  //RoundUpRepositoryImpl
+  // RoundUpRepositoryImpl
   const val REPO_ACCOUNT_UID_MISSING = "Missing accountUid"
-  const val REPO_NO_ACCOUNTS_IN_CACHE = "No accounts in cache"
   const val REPO_CURRENCY_GBP = "GBP"
-  const val REPO_DEFAULT_BALANCE = "0.00"
-  const val REPO_ERROR_FETCHING_ACCOUNTS = "Failed to fetch accounts: "
-  const val REPO_NO_ACCOUNTS_FOUND = "No accounts found"
-  const val REPO_ERROR_FETCHING_SAVINGS_GOALS = "Failed to fetch savings goals, keeping cached data"
-  const val REPO_SAVINGS_GOAL_STATE_ACTIVE = "ACTIVE"
   const val REPO_ROUND_UP_TRANSFER_REFERENCE = "Round-up transfer"
   const val REPO_FETCHING_GOAL_NOT_FOUND = "No savings goal available"
 

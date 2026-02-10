@@ -1,5 +1,6 @@
 package com.example.roundupapp.domain.usecase
 
+import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
@@ -13,12 +14,18 @@ class DeleteSavingsGoalUseCase @Inject constructor(
   suspend operator fun invoke(
     accountUid: String,
     savingsGoalUid: String
-  ): Result<Unit> =
-    try {
-      repository.deleteSavingsGoalsWithResult(accountUid, savingsGoalUid)
-      repository.cacheDeleteSavingsGoal(savingsGoalUid)
-      Result.success(Unit)
+  ): Result<Unit> {
+    return try {
+      when (val deleteResult = repository.deleteSavingsGoalsWithResult(accountUid, savingsGoalUid)) {
+        is DataResult.Success -> {
+          repository.cacheDeleteSavingsGoal(savingsGoalUid)
+          Result.success(Unit)
+        }
+
+        is DataResult.Error -> Result.failure(deleteResult.exception)
+      }
     } catch (e: Exception) {
       Result.failure(e)
     }
+  }
 }

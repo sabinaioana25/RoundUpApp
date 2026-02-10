@@ -9,7 +9,6 @@ import com.example.roundupapp.domain.usecase.DeleteSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.TransferToSavingsGoalUseCase
 import com.example.roundupapp.utils.Constants.ALERT_TRANSFER_FAILED
 import com.example.roundupapp.utils.Constants.GOALS_CREATING_FAILURE
-import com.example.roundupapp.utils.Constants.GOALS_ERROR_CREATING
 import com.example.roundupapp.utils.Constants.GOALS_FAILURE_DELETING
 import com.example.roundupapp.utils.Constants.GOALS_NAME_BLANK_WARNING
 import com.example.roundupapp.utils.Constants.GOALS_NO_SAVINGS_GOALS_TO_DELETE
@@ -31,8 +30,8 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * ViewModel for the home screen managing account details, savings goals, and round-up transfers
- * Handles user intents and updates UI state based on repository data
+ * ViewModel for the home screen
+ * Handles UI state and delegates business logic to use cases
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -49,7 +48,7 @@ class HomeViewModel @Inject constructor(
   private var pendingTransferUid: String? = null
 
   init {
-    load(initial = true)
+    loadAccountDetails(isInitialLoad = true)
   }
 
   // ================================================================================
@@ -57,51 +56,51 @@ class HomeViewModel @Inject constructor(
   // ================================================================================
   fun processIntent(intent: Intent) {
     when (intent) {
-      is Intent.CreateSavingsGoal -> handleCreateSavingsGoal(intent.name, intent.amountMinorUnits, intent.currency)
-      is Intent.DeleteSavingsGoal -> handleDeleteSavingsGoal()
-      is Intent.TransferToSavingsGoal -> handleTransferToSavingsGoal()
-      is Intent.Refresh -> load(initial = false)
-      is Intent.DismissError -> handleDismissError()
+      is Intent.CreateSavingsGoal -> createSavingsGoal(
+        name = intent.name,
+        amountMinorUnits = intent.amountMinorUnits,
+        currency = intent.currency
+      )
+      is Intent.DeleteSavingsGoal -> deleteSavingsGoal()
+      is Intent.TransferToSavingsGoal -> transferToSavingsGoal()
+      is Intent.Refresh -> loadAccountDetails(isInitialLoad = false)
+      is Intent.DismissError -> dismissError()
     }
   }
 
-
   // ================================================================================
-  // Initial Load
+  // Private Methods
   // ================================================================================
-  private fun load(initial: Boolean) {
+  private fun loadAccountDetails(isInitialLoad: Boolean) {
     viewModelScope.launch {
       _state.update {
         it.copy(
-          loadingState = if (initial) LoadingState.InitialLoading else LoadingState.Refreshing,
+          loadingState = if (isInitialLoad) LoadingState.InitialLoading else LoadingState.Refreshing,
           error = null
         )
       }
 
       val result = accountDetailsUseCase()
 
-      if (result.isSuccess) {
-        val details = result.getOrThrow()
-        val firstAccount = details.accounts.firstOrNull()
-        val transactions = details.transactions
-        val roundUp = calculateRoundUpUseCase(transactions)
+      _state.update {
+        if (result.isSuccess) {
+          val details = result.getOrThrow()
+          val firstAccount = details.accounts.firstOrNull()
+          val roundUp = calculateRoundUpUseCase(details.transactions)
 
-        _state.update {
           it.copy(
             loadingState = LoadingState.Idle,
             accounts = details.accounts,
             balance = details.balance,
-            transactions = transactions,
+            transactions = details.transactions,
             savingsGoals = details.savingsGoals,
             roundedAmount = roundUp,
             accountUid = firstAccount?.accountUid.orEmpty(),
             defaultCategory = firstAccount?.defaultCategory.orEmpty(),
             error = null
           )
-        }
-      } else {
-        val error = result.exceptionOrNull()
-        _state.update {
+        } else {
+          val error = result.exceptionOrNull()
           it.copy(
             loadingState = LoadingState.Idle,
             error = when (error) {
@@ -114,11 +113,8 @@ class HomeViewModel @Inject constructor(
     }
   }
 
-
-  // ================================================================================
-  // Intent Handlers
-  // ================================================================================
-  private fun handleCreateSavingsGoal(name: String, targetAmount: Int, currency: String) {
+  private fun createSavingsGoal(name: String, amountMinorUnits: Int, currency: String) {
+    // Validation
     if (_state.value.loadingState is LoadingState.InProgress) return
 
     if (name.isBlank()) {
@@ -126,14 +122,14 @@ class HomeViewModel @Inject constructor(
       return
     }
 
-    if (targetAmount <= 0) {
+    if (amountMinorUnits <= 0) {
       _state.update { it.copy(error = UiError.ValidationError(GOALS_VALUE_MUST_BE_GREATER_THAN_ZERO)) }
       return
     }
 
     val accountUid = _state.value.accountUid
     if (accountUid.isBlank()) {
-      _state.update { it.copy(error = UiError.DataError(GOALS_ERROR_CREATING)) }
+      _state.update { it.copy(error = UiError.DataError(REPO_ACCOUNT_UID_MISSING)) }
       return
     }
 
@@ -148,26 +144,29 @@ class HomeViewModel @Inject constructor(
       val result = createSavingsGoalUseCase(
         accountUid = accountUid,
         name = name,
-        amountMinorUnits = targetAmount,
+        amountMinorUnits = amountMinorUnits,
         currency = currency
       )
 
-
       if (result.isSuccess) {
         _state.update { it.copy(loadingState = LoadingState.Idle) }
-        load(initial = false)
+        loadAccountDetails(isInitialLoad = false)
       } else {
         _state.update {
           it.copy(
             loadingState = LoadingState.Idle,
-            error = UiError.OperationError(GOALS_CREATING_FAILURE, LoadingState.Operation.CREATING_GOAL)
+            error = UiError.OperationError(
+              GOALS_CREATING_FAILURE,
+              LoadingState.Operation.CREATING_GOAL
+            )
           )
         }
       }
     }
   }
 
-  private fun handleDeleteSavingsGoal() {
+  private fun deleteSavingsGoal() {
+    // Validation
     if (_state.value.loadingState is LoadingState.InProgress) return
 
     val accountUid = _state.value.accountUid
@@ -175,9 +174,7 @@ class HomeViewModel @Inject constructor(
 
     if (savingsGoal == null || accountUid.isBlank()) {
       _state.update {
-        it.copy(
-          error = UiError.ValidationError(GOALS_NO_SAVINGS_GOALS_TO_DELETE),
-        )
+        it.copy(error = UiError.ValidationError(GOALS_NO_SAVINGS_GOALS_TO_DELETE))
       }
       return
     }
@@ -191,9 +188,10 @@ class HomeViewModel @Inject constructor(
       }
 
       val result = deleteSavingsGoalUseCase(accountUid, savingsGoal.savingsGoalUid)
+
       if (result.isSuccess) {
         _state.update { it.copy(loadingState = LoadingState.Idle) }
-        load(initial = false)
+        loadAccountDetails(isInitialLoad = false)
       } else {
         _state.update {
           it.copy(
@@ -208,7 +206,8 @@ class HomeViewModel @Inject constructor(
     }
   }
 
-  private fun handleTransferToSavingsGoal() {
+  private fun transferToSavingsGoal() {
+    // Validation
     if (_state.value.isLoading) {
       _state.update {
         it.copy(
@@ -231,13 +230,17 @@ class HomeViewModel @Inject constructor(
 
     val goalUid = _state.value.savingsGoals.firstOrNull()?.savingsGoalUid
     if (goalUid.isNullOrBlank()) {
-      _state.update { it.copy(error = UiError.DataError(REPO_FETCHING_GOAL_NOT_FOUND)) }
+      _state.update {
+        it.copy(error = UiError.DataError(REPO_FETCHING_GOAL_NOT_FOUND))
+      }
       return
     }
 
     val amount = _state.value.roundedAmount
     if (amount <= 0) {
-      _state.update { it.copy(error = UiError.ValidationError(HOME_SCREEN_NO_ROUND_UP_AVAILABLE)) }
+      _state.update {
+        it.copy(error = UiError.ValidationError(HOME_SCREEN_NO_ROUND_UP_AVAILABLE))
+      }
       return
     }
 
@@ -256,13 +259,14 @@ class HomeViewModel @Inject constructor(
       val result = transferToSavingsGoalUseCase(
         accountUid = accountUid,
         savingsGoalUid = goalUid,
-        roundUpAmount = amount,
+        amountMinorUnits = amount,
         transferUid = transferUid
       )
 
       if (result.isSuccess) {
+        pendingTransferUid = null
         _state.update { it.copy(loadingState = LoadingState.Idle) }
-        load(initial = false)
+        loadAccountDetails(isInitialLoad = false)
       } else {
         _state.update {
           it.copy(
@@ -277,7 +281,7 @@ class HomeViewModel @Inject constructor(
     }
   }
 
-  private fun handleDismissError() {
+  private fun dismissError() {
     _state.update { it.copy(error = null) }
   }
 }

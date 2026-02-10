@@ -1,12 +1,11 @@
 package com.example.roundupapp.domain.usecase
 
+import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.domain.repository.RoundUpRepository
-import com.example.roundupapp.utils.randomUuidV4
 import javax.inject.Inject
 
 /**
- * Transfers the calculated round-up amount to the first available savings goal
- * Generates a unique transfer UID and refreshes account data on success
+ * Transfers the specified amount to a savings goal
  */
 class TransferToSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
@@ -14,18 +13,23 @@ class TransferToSavingsGoalUseCase @Inject constructor(
   suspend operator fun invoke(
     accountUid: String,
     savingsGoalUid: String,
-    roundUpAmount: Int,
-    transferUid: String = randomUuidV4()
-  ): Result<Boolean> =
-    try {
-      repository.transferToSavingsGoalWithResult(
+    amountMinorUnits: Int,
+    transferUid: String
+  ): Result<Boolean> {
+    return try {
+      val result = repository.transferToSavingsGoalWithResult(
         accountUid = accountUid,
         savingsGoalUid = savingsGoalUid,
-        amountMinorUnits = roundUpAmount,
+        amountMinorUnits = amountMinorUnits,
         transferUid = transferUid
       )
-      Result.success(true)
+
+      when (result) {
+        is DataResult.Success -> Result.success(result.data)
+        is DataResult.Error -> Result.failure(result.exception)
+      }
     } catch (e: Exception) {
       Result.failure(e)
     }
+  }
 }
