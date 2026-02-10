@@ -2,7 +2,9 @@ package com.example.roundupapp.domain.usecase
 
 import android.util.Log
 import com.example.roundupapp.data.DataResult
+import com.example.roundupapp.domain.ValidationException
 import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
+import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
@@ -82,8 +84,3 @@ class CreateSavingsGoalUseCase @Inject constructor(
     private val TAG = CreateSavingsGoalUseCase::class.java.simpleName
   }
 }
-
-/**
- * Exception for validation errors
- */
-class ValidationException(message: String) : Exception(message)

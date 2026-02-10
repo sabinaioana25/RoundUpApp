@@ -3,6 +3,7 @@ package com.example.roundupapp.domain.usecase
 import android.util.Log
 import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
+import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.models.AccountDetails
 import com.example.roundupapp.domain.models.DataSource
 import com.example.roundupapp.domain.repository.RoundUpRepository
@@ -175,8 +176,3 @@ class AccountDetailsUseCase @Inject constructor(
     private val TAG = AccountDetailsUseCase::class.java.simpleName
   }
 }
-
-/**
- * Exception thrown when device is offline
- */
-class OfflineException(message: String) : Exception(message)

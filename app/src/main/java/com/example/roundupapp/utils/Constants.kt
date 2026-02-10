@@ -86,5 +86,4 @@ object Constants {
   // Offline handling
   const val HOME_SCREEN_OFFLINE_ERROR = "No internet connection. Showing cached data."
   const val HOME_SCREEN_OFFLINE_INDICATOR = "Offline mode"
-  const val GOALS_OFFLINE_OPERATION_ERROR = "This operation requires an internet connection"
 }

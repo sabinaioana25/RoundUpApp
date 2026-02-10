@@ -2,13 +2,13 @@ package com.example.roundupapp.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.roundupapp.domain.ValidationException
+import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.usecase.AccountDetailsUseCase
 import com.example.roundupapp.domain.usecase.CalculateRoundUpUseCase
 import com.example.roundupapp.domain.usecase.CreateSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.DeleteSavingsGoalUseCase
-import com.example.roundupapp.domain.usecase.OfflineException
 import com.example.roundupapp.domain.usecase.TransferToSavingsGoalUseCase
-import com.example.roundupapp.domain.usecase.ValidationException
 import com.example.roundupapp.utils.Constants.ALERT_TRANSFER_FAILED
 import com.example.roundupapp.utils.Constants.GOALS_CREATING_FAILURE
 import com.example.roundupapp.utils.Constants.GOALS_FAILURE_DELETING
