@@ -7,8 +7,11 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +41,7 @@ import com.example.roundupapp.ui.components.aListOfTransactions
 import com.example.roundupapp.ui.theme.Dimens
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_BALANCE
+import com.example.roundupapp.utils.Constants.HOME_SCREEN_BUTTON_RETRY
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_ERROR_EMPTY_STATE
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_LOADING_MESSAGE
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_PULL_TO_REFRESH
@@ -98,37 +102,33 @@ fun HomeScreen(
     },
     snackbarHost = { SnackbarHost(snackbarHostState) },
   ) { paddingValues ->
-    when {
-      // Initial loading state
-      state.isInitialLoading -> {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
-          contentAlignment = Alignment.Center
-        ) {
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .windowInsetsPadding(WindowInsets.safeDrawing)
+        .padding(paddingValues),
+    ) {
+      when {
+        // Initial loading state
+        state.isInitialLoading -> {
           Column(
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)
           ) {
             CircularProgressIndicator()
             Text(
               text = HOME_SCREEN_LOADING_MESSAGE,
-              style = MaterialTheme.typography.bodyMedium
+              style = MaterialTheme.typography.bodyMedium,
+              modifier = Modifier.padding(top = Dimens.Spacing.default)
             )
           }
         }
-      }
 
-      // No data and not loading
-      !state.hasData && !state.isLoading -> {
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
-          contentAlignment = Alignment.Center
-        ) {
+        // No data and not loading
+        !state.hasData && !state.isLoading -> {
           Column(
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)
           ) {
@@ -139,23 +139,26 @@ fun HomeScreen(
             Text(
               text = HOME_SCREEN_PULL_TO_REFRESH,
               style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier = Modifier.padding(top = Dimens.Spacing.small, bottom = Dimens.Spacing.small)
             )
+            Button(onClick = { onIntent(Intent.Refresh) }) {
+              Text(HOME_SCREEN_BUTTON_RETRY)
+            }
           }
         }
-      }
 
-      // Content with pull-to-refresh
-      else -> {
-        PullToRefreshBox(
-          isRefreshing = state.isRefreshing,
-          onRefresh = { onIntent(Intent.Refresh) },
-          modifier = Modifier.padding(paddingValues)
-        ) {
-          HomeScreenContent(
-            state = state,
-            onIntent = onIntent
-          )
+        else -> {
+          PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = { onIntent(Intent.Refresh) },
+            modifier = Modifier.fillMaxSize()
+          ) {
+            HomeScreenContent(
+              state = state,
+              onIntent = onIntent
+            )
+          }
         }
       }
     }
@@ -197,14 +200,14 @@ private fun HomeScreenContent(
       }
     }
 
-    // Goals Section
+    // Goals
     Goals(
       state = state,
       onIntent = onIntent,
       isInProgress = state.loadingState is LoadingState.InProgress
     )
 
-    // Transactions Section
+    // Transactions
     Transactions(
       modifier = Modifier
         .weight(Dimens.Layout.defaultWeight)

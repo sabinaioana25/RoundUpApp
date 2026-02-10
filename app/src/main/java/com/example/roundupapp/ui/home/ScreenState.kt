@@ -9,6 +9,8 @@ sealed interface LoadingState {
   data object InitialLoading : LoadingState
   data object Refreshing : LoadingState
   data class InProgress(val operation: Operation) : LoadingState
+  data class Error(val error: UiError) : LoadingState
+
 
   enum class Operation {
     CREATING_GOAL,
@@ -43,9 +45,6 @@ data class ScreenState(
 
   val hasData: Boolean
     get() = accounts.isNotEmpty()
-
-  val canPerformOperations: Boolean
-    get() = loadingState == LoadingState.Idle && hasData
 }
 
 /**

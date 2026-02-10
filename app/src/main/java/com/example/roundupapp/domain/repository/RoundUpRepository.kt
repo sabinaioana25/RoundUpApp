@@ -1,8 +1,11 @@
 package com.example.roundupapp.domain.repository
 
-import com.example.roundupapp.domain.models.AccountDetails
+import com.example.roundupapp.data.DataResult
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalResponse
+import com.example.roundupapp.domain.models.DomainAccount
+import com.example.roundupapp.domain.models.DomainBalance
 import com.example.roundupapp.domain.models.DomainSavingsGoal
-import kotlinx.coroutines.flow.StateFlow
+import com.example.roundupapp.domain.models.DomainTransaction
 
 /**
  * Repository interface for managing account data, savings goals, and round-up transfers
@@ -10,33 +13,66 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface RoundUpRepository {
 
-  val accountDetails: StateFlow<AccountDetails?>
+  // ================================================================================
+  // Network Operations
+  // ================================================================================
+  suspend fun getAccountsWithResult(): DataResult<List<DomainAccount>>
+  suspend fun getBalanceWithResult(accountUid: String): DataResult<DomainBalance>
+  suspend fun getTransactionsWithResult(
+    accountUid: String,
+    categoryUid: String
+  ): DataResult<List<DomainTransaction>>
 
-  suspend fun loadFromCache()
-
-  suspend fun refreshFromNetwork()
-
-  suspend fun createSavingsGoal(
+  suspend fun getSavingsGoalsWithResult(accountUid: String): DataResult<List<DomainSavingsGoal>>
+  suspend fun createSavingsGoalsRequest(
     accountUid: String,
     name: String,
-    amountMinorUnits: Int,
-    currency: String
-  ): DomainSavingsGoal?
+    currency: String,
+    amountMinorUnits: Int
+  ): DataResult<CreateSavingsGoalResponse>
+  suspend fun deleteSavingsGoalsWithResult(accountUid: String, savingsGoalUid: String): DataResult<Unit>
 
-  suspend fun deleteSavingsGoal(
+
+  // ================================================================================
+  // Database Operations - Read
+  // ================================================================================
+  suspend fun getCachedAccounts(): DataResult<List<DomainAccount>>
+  suspend fun getCachedTransactions(accountUid: String): DataResult<List<DomainTransaction>>
+  suspend fun getCachedSavingsGoals(accountUid: String): DataResult<List<DomainSavingsGoal>>
+  suspend fun getCachedBalance(): DataResult<DomainBalance?>
+
+
+  // ================================================================================
+  // Database Operations - Write
+  // ================================================================================
+  suspend fun cacheAccounts(accounts: List<DomainAccount>): Any
+  suspend fun cacheBalance(
     accountUid: String,
-    savingsGoalUid: String
-  ): Boolean
+    balance: DomainBalance
+  ): Any
 
-  suspend fun addSavingsGoal(goal: DomainSavingsGoal, accountUid: String)
+  suspend fun cacheTransactions(
+    accountUid: String,
+    transactions: List<DomainTransaction>
+  ): Any
 
-  suspend fun removeSavingsGoal(savingsGoalUid: String)
+  suspend fun cacheSavingsGoals(
+    accountUid: String,
+    savingsGoals: List<DomainSavingsGoal>
+  ): Any
 
-  fun setRoundUpAmount(amount: Int)
+  suspend fun cacheSavingsGoal(
+    accountUid: String,
+    goal: DomainSavingsGoal
+  ): Any
 
-  suspend fun transferToSavingsGoal(
+  suspend fun cacheDeleteSavingsGoal(savingsGoalUid: String): Any
+
+
+  suspend fun transferToSavingsGoalWithResult(
     accountUid: String,
     savingsGoalUid: String,
+    amountMinorUnits: Int,
     transferUid: String,
-  ): Boolean
+  ): DataResult<Boolean>
 }

@@ -1,5 +1,6 @@
 package com.example.roundupapp.domain.usecase
 
+import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
@@ -10,18 +11,32 @@ import javax.inject.Inject
 class DeleteSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke() {
-    val details = repository.accountDetails.value ?: return
-    val accountUid = details.accounts.firstOrNull()?.accountUid ?: return
-    val savingsGoalUid = details.savingsGoals.firstOrNull()?.savingsGoalUid ?: return
+  suspend operator fun invoke(
+    accountUid: String,
+    savingsGoalUid: String
+  ): Result<Unit> {
+    if (accountUid.isBlank()) {
+      return Result.failure(ValidationException("Account UID is required"))
+    }
 
-    val wasDeleted = repository.deleteSavingsGoal(
-      accountUid = accountUid,
-      savingsGoalUid = savingsGoalUid
-    )
+    if (savingsGoalUid.isBlank()) {
+      return Result.failure(ValidationException("Savings goal UID is required"))
+    }
 
-    if (wasDeleted) {
-      repository.removeSavingsGoal(savingsGoalUid)
+    return try {
+      // Delete from server
+      when (val deleteResult = repository.deleteSavingsGoalsWithResult(accountUid, savingsGoalUid)) {
+        is DataResult.Success -> {
+          // Delete from cache
+          repository.cacheDeleteSavingsGoal(savingsGoalUid)
+          Result.success(Unit)
+        }
+        is DataResult.Error -> {
+          Result.failure(deleteResult.exception)
+        }
+      }
+    } catch (e: Exception) {
+      Result.failure(e)
     }
   }
 }

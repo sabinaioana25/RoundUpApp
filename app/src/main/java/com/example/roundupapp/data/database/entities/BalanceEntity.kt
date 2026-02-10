@@ -8,5 +8,5 @@ data class BalanceEntity(
   @PrimaryKey val id: Int = 0,
   val accountUid: String,
   val effectiveBalanceMinorUnits: Int,
-  val effectiveBalanceCurrency: String
+  val effectiveBalanceCurrency: String,
 )

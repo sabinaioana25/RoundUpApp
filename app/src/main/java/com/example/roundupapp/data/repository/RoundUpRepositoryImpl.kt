@@ -2,7 +2,7 @@ package com.example.roundupapp.data.repository
 
 import android.util.Log
 import com.example.roundupapp.BuildConfig
-import com.example.roundupapp.data.NetworkResult
+import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.data.database.RoundUpDatabase
 import com.example.roundupapp.data.database.entities.AccountEntity
 import com.example.roundupapp.data.database.entities.BalanceEntity
@@ -11,43 +11,23 @@ import com.example.roundupapp.data.database.entities.TransactionEntity
 import com.example.roundupapp.data.network.RoundUpApi.retrofitService
 import com.example.roundupapp.data.network.dto.savingsgoals.CreateAmountTransferRequest
 import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalRequest
-import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoal
+import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalResponse
 import com.example.roundupapp.data.network.dto.transactions.NetworkAmount
-import com.example.roundupapp.domain.models.AccountDetails
 import com.example.roundupapp.domain.models.DomainAccount
 import com.example.roundupapp.domain.models.DomainAmount
 import com.example.roundupapp.domain.models.DomainBalance
 import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.models.DomainTransaction
 import com.example.roundupapp.domain.models.toDomainBalance
-import com.example.roundupapp.domain.models.toDomainSavingsGoal
 import com.example.roundupapp.domain.models.toListOfDomainAccounts
 import com.example.roundupapp.domain.models.toListOfDomainSavingsGoals
 import com.example.roundupapp.domain.models.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
-import com.example.roundupapp.utils.Constants.ALERT_TRANSFERRING_ERROR
-import com.example.roundupapp.utils.Constants.GOALS_ERROR_CREATING
-import com.example.roundupapp.utils.Constants.GOALS_ERROR_DELETING
+import com.example.roundupapp.utils.Constants.ALERT_TRANSFER_FAILURE_EXCEPTION
 import com.example.roundupapp.utils.Constants.REPO_CURRENCY_GBP
-import com.example.roundupapp.utils.Constants.REPO_DEFAULT_BALANCE
-import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_ACCOUNTS
-import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_BALANCE
-import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_SAVINGS_GOALS
-import com.example.roundupapp.utils.Constants.REPO_ERROR_FETCHING_TRANSACTIONS
-import com.example.roundupapp.utils.Constants.REPO_FETCHING_ACCOUNTS_ERROR
-import com.example.roundupapp.utils.Constants.REPO_FETCHING_BALANCE_ERROR
-import com.example.roundupapp.utils.Constants.REPO_FETCHING_SAVINGS_GOALS_ERROR
-import com.example.roundupapp.utils.Constants.REPO_FETCHING_TRANSACTIONS_ERROR
-import com.example.roundupapp.utils.Constants.REPO_NO_ACCOUNTS_FOUND
-import com.example.roundupapp.utils.Constants.REPO_NO_ACCOUNTS_IN_CACHE
 import com.example.roundupapp.utils.Constants.REPO_ROUND_UP_TRANSFER_REFERENCE
-import com.example.roundupapp.utils.Constants.REPO_SAVINGS_GOAL_STATE_ACTIVE
 import com.example.roundupapp.utils.toGbp
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -55,186 +35,315 @@ import java.time.format.DateTimeFormatter
 /**
  * Implementation of the [RoundUpRepository] that uses a local database as a cache
  * and a remote API as the single source of truth
+ * All methods wrap results in DataResult for consistent error handling
  */
 class RoundUpRepositoryImpl(
   private val database: RoundUpDatabase
 ) : RoundUpRepository {
 
-  private val _accountDetails = MutableStateFlow<AccountDetails?>(null)
-  override val accountDetails: StateFlow<AccountDetails?> = _accountDetails.asStateFlow()
-
   companion object {
-    private val TAG = RoundUpRepositoryImpl::class.java.simpleName
+    val TAG = RoundUpRepositoryImpl::class.java.simpleName
   }
 
-  override suspend fun loadFromCache() {
-    val accounts = database.accountDao().getAll().map { entity ->
-      DomainAccount(
-        accountUid = entity.accountUid,
-        name = entity.name,
-        defaultCategory = entity.defaultCategory,
-        createdAt = ""
-      )
-    }
-    if (accounts.isEmpty()) {
-      Log.d(TAG, REPO_NO_ACCOUNTS_IN_CACHE)
-      return
-    }
-
-    val account = accounts[0]
-
-    val transactions = database.transactionDao()
-      .getByAccount(account.accountUid)
-      .map { entity ->
-        DomainTransaction(
-          direction = entity.direction,
-          amount = DomainAmount(
-            currency = REPO_CURRENCY_GBP,
-            minorUnits = entity.amountMinorUnits,
-            gbpUnits = entity.amountMinorUnits.toGbp()
-          ),
-          transactionTime = entity.transactionDate,
-          counterPartyName = entity.counterPartyName
-        )
+  // ================================================================================
+  // Network Operations
+  // ================================================================================
+  
+  override suspend fun getAccountsWithResult(): DataResult<List<DomainAccount>> =
+    withContext(Dispatchers.IO) {
+      try {
+        val response = retrofitService.getAccounts(BuildConfig.API_KEY)
+        DataResult.Success(response.toListOfDomainAccounts())
+      } catch (e: Exception) {
+        Log.e(TAG, "Error fetching accounts", e)
+        DataResult.Error(e)
       }
+    }
 
-    val savingsGoals = database.savingsGoalDao()
-      .getByAccountSavingsGoal(account.accountUid)
-      .map { entity ->
-        DomainSavingsGoal(
-          savingsGoalUid = entity.savingsGoalUid,
+  override suspend fun getBalanceWithResult(accountUid: String): DataResult<DomainBalance> =
+    withContext(Dispatchers.IO) {
+      try {
+        val balance = retrofitService.getBalance(BuildConfig.API_KEY, accountUid)
+        DataResult.Success(balance.toDomainBalance())
+      } catch (e: Exception) {
+        Log.e(TAG, "Error fetching balance", e)
+        DataResult.Error(e)
+      }
+    }
+
+  override suspend fun getTransactionsWithResult(
+    accountUid: String,
+    categoryUid: String
+  ): DataResult<List<DomainTransaction>> = withContext(Dispatchers.IO) {
+    try {
+      val changesSince = ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
+      val response = retrofitService.getTransactions(
+        BuildConfig.API_KEY,
+        accountUid,
+        categoryUid,
+        changesSince
+      )
+      DataResult.Success(response.toListOfDomainTransactions())
+    } catch (e: Exception) {
+      Log.e(TAG, "Error fetching transactions", e)
+      DataResult.Error(e)
+    }
+  }
+
+  override suspend fun getSavingsGoalsWithResult(accountUid: String): DataResult<List<DomainSavingsGoal>> =
+    withContext(Dispatchers.IO) {
+      try {
+        val goals = retrofitService.getSavingsGoals(BuildConfig.API_KEY, accountUid)
+        DataResult.Success(goals.toListOfDomainSavingsGoals())
+      } catch (e: Exception) {
+        Log.e(TAG, "Error fetching savings goals", e)
+        DataResult.Error(e)
+      }
+    }
+
+  override suspend fun createSavingsGoalsRequest(
+    accountUid: String,
+    name: String,
+    currency: String,
+    amountMinorUnits: Int
+  ): DataResult<CreateSavingsGoalResponse> = withContext(Dispatchers.IO) {
+    try {
+      val response = retrofitService.createSavingsGoal(
+        BuildConfig.API_KEY,
+        accountUid,
+        CreateSavingsGoalRequest(
+          name = name,
+          currency = currency,
+          target = NetworkAmount(
+            currency = currency,
+            minorUnits = amountMinorUnits
+          )
+        )
+      )
+      DataResult.Success(response)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error creating savings goal", e)
+      DataResult.Error(e)
+    }
+  }
+
+  override suspend fun transferToSavingsGoalWithResult(
+    accountUid: String,
+    savingsGoalUid: String,
+    amountMinorUnits: Int,
+    transferUid: String
+  ): DataResult<Boolean> = withContext(Dispatchers.IO) {
+    try {
+      val requestBody = CreateAmountTransferRequest(
+        amount = NetworkAmount(
+          currency = REPO_CURRENCY_GBP,
+          minorUnits = amountMinorUnits
+        ),
+        reference = REPO_ROUND_UP_TRANSFER_REFERENCE
+      )
+
+      val response = retrofitService.transferMoneyToSavingsGoal(
+        BuildConfig.API_KEY,
+        accountUid,
+        savingsGoalUid,
+        transferUid,
+        body = requestBody
+      )
+
+      if (response.transferUid != transferUid) {
+        throw IllegalStateException(ALERT_TRANSFER_FAILURE_EXCEPTION)
+      }
+      DataResult.Success(true)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error transferring to savings goal", e)
+      DataResult.Error(e)
+    }
+  }
+
+  override suspend fun deleteSavingsGoalsWithResult(
+    accountUid: String,
+    savingsGoalUid: String
+  ): DataResult<Unit> = withContext(Dispatchers.IO) {
+    try {
+      retrofitService.deleteSavingsGoal(
+        BuildConfig.API_KEY,
+        accountUid,
+        savingsGoalUid
+      )
+      DataResult.Success(Unit)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error deleting savings goal", e)
+      DataResult.Error(e)
+    }
+  }
+
+  // ================================================================================
+  // Database Operations - Read (wrapped in DataResult)
+  // ================================================================================
+  
+  override suspend fun getCachedAccounts(): DataResult<List<DomainAccount>> = withContext(Dispatchers.IO) {
+    try {
+      val accounts = database.accountDao().getAll().map { entity ->
+        DomainAccount(
+          accountUid = entity.accountUid,
           name = entity.name,
-          targetAmount = DomainAmount(
-            currency = entity.targetAmountCurrency,
-            minorUnits = entity.targetAmountMinorUnits,
-            gbpUnits = entity.targetAmountMinorUnits.toGbp()
-          ),
-          totalSaved = DomainAmount(
-            currency = entity.totalSavedCurrency,
-            minorUnits = entity.totalSavedMinorUnits,
-            gbpUnits = entity.totalSavedMinorUnits.toGbp()
-          ),
-          state = entity.state,
+          defaultCategory = entity.defaultCategory,
+          createdAt = ""
         )
       }
-
-    val balanceEntity = database.balanceDao().get()
-    val balance = balanceEntity?.effectiveBalanceMinorUnits?.toGbp() ?: REPO_DEFAULT_BALANCE
-
-    _accountDetails.value = AccountDetails(
-      accounts = accounts,
-      transactions = transactions,
-      savingsGoals = savingsGoals,
-      balance = balance
-    )
+      DataResult.Success(accounts)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error reading cached accounts", e)
+      DataResult.Error(e)
+    }
   }
 
-  override suspend fun refreshFromNetwork() {
-    val currentRoundUpAmount = _accountDetails.value?.roundUpAmount ?: 0
-
-    val accountsResult = getAccountsWithResult()
-    if (accountsResult is NetworkResult.Error) {
-      Log.e(TAG, "$REPO_ERROR_FETCHING_ACCOUNTS${accountsResult.exception.message}")
-      return
-    }
-
-    val accounts = (accountsResult as NetworkResult.Success).data
-    if (accounts.isEmpty()) {
-      Log.w(TAG, REPO_NO_ACCOUNTS_FOUND)
-      return
-    }
-
-    val account = accounts[0]
-
-    val transactionsResult = getTransactionsWithResult(account.accountUid, account.defaultCategory)
-    val savingsGoalsResult = getSavingsGoalsWithResult(account.accountUid)
-    val balanceResult = getBalanceWithResult(account.accountUid)
-
-    // Only update if there is data (don't clear on errors)
-    val transactions = when (transactionsResult) {
-      is NetworkResult.Success -> transactionsResult.data
-      is NetworkResult.Error -> {
-        Log.e(TAG, REPO_ERROR_FETCHING_TRANSACTIONS)
-        _accountDetails.value?.transactions ?: emptyList()
+  override suspend fun getCachedTransactions(accountUid: String): DataResult<List<DomainTransaction>> =
+    withContext(Dispatchers.IO) {
+      try {
+        val transactions = database.transactionDao()
+          .getByAccount(accountUid)
+          .map { entity ->
+            DomainTransaction(
+              direction = entity.direction,
+              amount = DomainAmount(
+                currency = REPO_CURRENCY_GBP,
+                minorUnits = entity.amountMinorUnits,
+                gbpUnits = entity.amountMinorUnits.toGbp()
+              ),
+              transactionTime = entity.transactionDate,
+              counterPartyName = entity.counterPartyName
+            )
+          }
+        DataResult.Success(transactions)
+      } catch (e: Exception) {
+        Log.e(TAG, "Error reading cached transactions", e)
+        DataResult.Error(e)
       }
     }
 
-    val savingsGoals = when (savingsGoalsResult) {
-      is NetworkResult.Success -> savingsGoalsResult.data
-      is NetworkResult.Error -> {
-        Log.e(TAG, REPO_ERROR_FETCHING_SAVINGS_GOALS)
-        _accountDetails.value?.savingsGoals ?: emptyList()
+  override suspend fun getCachedSavingsGoals(accountUid: String): DataResult<List<DomainSavingsGoal>> =
+    withContext(Dispatchers.IO) {
+      try {
+        val goals = database.savingsGoalDao()
+          .getByAccountSavingsGoal(accountUid)
+          .map { entity ->
+            DomainSavingsGoal(
+              savingsGoalUid = entity.savingsGoalUid,
+              name = entity.name,
+              targetAmount = DomainAmount(
+                currency = entity.targetAmountCurrency,
+                minorUnits = entity.targetAmountMinorUnits,
+                gbpUnits = entity.targetAmountMinorUnits.toGbp()
+              ),
+              totalSaved = DomainAmount(
+                currency = entity.totalSavedCurrency,
+                minorUnits = entity.totalSavedMinorUnits,
+                gbpUnits = entity.totalSavedMinorUnits.toGbp()
+              ),
+              state = entity.state,
+            )
+          }
+        DataResult.Success(goals)
+      } catch (e: Exception) {
+        Log.e(TAG, "Error reading cached savings goals", e)
+        DataResult.Error(e)
       }
     }
 
-    val balance = when (balanceResult) {
-      is NetworkResult.Success -> balanceResult.data.effectiveBalance.minorUnits.toGbp()
-      is NetworkResult.Error -> {
-        Log.e(TAG, REPO_ERROR_FETCHING_BALANCE)
-        _accountDetails.value?.balance ?: REPO_DEFAULT_BALANCE
-      }
+  override suspend fun getCachedBalance(): DataResult<DomainBalance?> = withContext(Dispatchers.IO) {
+    try {
+      val balance = database.balanceDao()
+        .get()
+        ?.let {
+          DomainBalance(
+            effectiveBalance = DomainAmount(
+              currency = it.effectiveBalanceCurrency,
+              minorUnits = it.effectiveBalanceMinorUnits,
+              gbpUnits = it.effectiveBalanceMinorUnits.toGbp()
+            )
+          )
+        }
+      DataResult.Success(balance)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error reading cached balance", e)
+      DataResult.Error(e)
     }
-
-    if (transactionsResult is NetworkResult.Success ||
-      savingsGoalsResult is NetworkResult.Success ||
-      balanceResult is NetworkResult.Success
-    ) {
-      saveToCache(
-        accounts,
-        if (transactionsResult is NetworkResult.Success) transactions else emptyList(),
-        if (savingsGoalsResult is NetworkResult.Success) savingsGoals else emptyList(),
-        account,
-        if (balanceResult is NetworkResult.Success) balanceResult.data else null,
-        shouldUpdateTransactions = transactionsResult is NetworkResult.Success,
-        shouldUpdateGoals = savingsGoalsResult is NetworkResult.Success
-      )
-    }
-
-    _accountDetails.value = AccountDetails(
-      accounts = accounts,
-      transactions = transactions,
-      savingsGoals = savingsGoals,
-      balance = balance,
-      roundUpAmount = currentRoundUpAmount
-    )
   }
 
-  private suspend fun saveToCache(
-    accounts: List<DomainAccount>,
-    transactions: List<DomainTransaction>,
-    savingsGoals: List<DomainSavingsGoal>,
-    account: DomainAccount,
-    balance: DomainBalance?,
-    shouldUpdateTransactions: Boolean = true,
-    shouldUpdateGoals: Boolean = true
-  ) {
-    database.accountDao().insertAll(accounts.map { 
-      AccountEntity(
-        accountUid = it.accountUid,
-        name = it.name,
-        defaultCategory = it.defaultCategory,
-      )
-    })
+  // ================================================================================
+  // Database Operations - Write (wrapped in DataResult)
+  // ================================================================================
+  
+  override suspend fun cacheAccounts(accounts: List<DomainAccount>): DataResult<Unit> = 
+    withContext(Dispatchers.IO) {
+      try {
+        database.accountDao().insertAll(accounts.map {
+          AccountEntity(
+            accountUid = it.accountUid,
+            name = it.name,
+            defaultCategory = it.defaultCategory,
+          )
+        })
+        DataResult.Success(Unit)
+      } catch (e: Exception) {
+        Log.e(TAG, "Error caching accounts", e)
+        DataResult.Error(e)
+      }
+    }
 
-    if (shouldUpdateTransactions) {
-      database.transactionDao().deleteByAccount(account.accountUid)
+  override suspend fun cacheBalance(
+    accountUid: String,
+    balance: DomainBalance
+  ): DataResult<Unit> = withContext(Dispatchers.IO) {
+    try {
+      database.balanceDao().insert(
+        BalanceEntity(
+          id = 0,
+          accountUid = accountUid,
+          effectiveBalanceMinorUnits = balance.effectiveBalance.minorUnits,
+          effectiveBalanceCurrency = balance.effectiveBalance.currency
+        )
+      )
+      DataResult.Success(Unit)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error caching balance", e)
+      DataResult.Error(e)
+    }
+  }
+
+  override suspend fun cacheTransactions(
+    accountUid: String,
+    transactions: List<DomainTransaction>
+  ): DataResult<Unit> = withContext(Dispatchers.IO) {
+    try {
+      database.transactionDao().deleteByAccount(accountUid)
       database.transactionDao().insertAll(transactions.map {
         TransactionEntity(
-          accountUid = account.accountUid,
+          accountUid = accountUid,
           direction = it.direction,
           amountMinorUnits = it.amount.minorUnits,
           transactionDate = it.transactionTime,
           counterPartyName = it.counterPartyName,
         )
       })
+      DataResult.Success(Unit)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error caching transactions", e)
+      DataResult.Error(e)
     }
+  }
 
-    if (shouldUpdateGoals) {
-      database.savingsGoalDao().deleteByAccount(account.accountUid)
+  override suspend fun cacheSavingsGoals(
+    accountUid: String,
+    savingsGoals: List<DomainSavingsGoal>
+  ): DataResult<Unit> = withContext(Dispatchers.IO) {
+    try {
+      database.savingsGoalDao().deleteByAccount(accountUid)
       database.savingsGoalDao().insertAll(savingsGoals.map {
         SavingsGoalEntity(
           savingsGoalUid = it.savingsGoalUid,
-          accountUid = account.accountUid,
+          accountUid = accountUid,
           name = it.name,
           targetAmountMinorUnits = it.targetAmount.minorUnits,
           targetAmountCurrency = it.targetAmount.currency,
@@ -243,24 +352,18 @@ class RoundUpRepositoryImpl(
           state = it.state,
         )
       })
-    }
-
-    balance?.let {
-      database.balanceDao().insert(
-        BalanceEntity(
-          id = 0,
-          accountUid = account.accountUid,
-          effectiveBalanceMinorUnits = it.effectiveBalance.minorUnits,
-          effectiveBalanceCurrency = it.effectiveBalance.currency
-        )
-      )
+      DataResult.Success(Unit)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error caching savings goals", e)
+      DataResult.Error(e)
     }
   }
 
-  override suspend fun addSavingsGoal(goal: DomainSavingsGoal, accountUid: String) =
-    withContext(Dispatchers.IO) {
-      _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals + goal) }
-
+  override suspend fun cacheSavingsGoal(
+    accountUid: String,
+    goal: DomainSavingsGoal
+  ): DataResult<Unit> = withContext(Dispatchers.IO) {
+    try {
       database.savingsGoalDao().insertAll(
         listOf(
           SavingsGoalEntity(
@@ -275,148 +378,21 @@ class RoundUpRepositoryImpl(
           )
         )
       )
-    }
-
-  override suspend fun removeSavingsGoal(savingsGoalUid: String) = withContext(Dispatchers.IO) {
-    _accountDetails.update { it?.copy(savingsGoals = it.savingsGoals.filter { g -> g.savingsGoalUid != savingsGoalUid }) }
-    database.savingsGoalDao().deleteBySavingsGoalUid(savingsGoalUid)
-  }
-
-  override fun setRoundUpAmount(amount: Int) {
-    _accountDetails.update { it?.copy(roundUpAmount = amount) }
-  }
-
-  override suspend fun createSavingsGoal(
-    accountUid: String,
-    name: String,
-    amountMinorUnits: Int,
-    currency: String
-  ): DomainSavingsGoal? = withContext(Dispatchers.IO) {
-    try {
-      val request = CreateSavingsGoalRequest(
-        name = name,
-        currency = REPO_CURRENCY_GBP,
-        target = NetworkAmount(
-          currency = REPO_CURRENCY_GBP,
-          minorUnits = amountMinorUnits
-        )
-      )
-      val response = retrofitService.createSavingsGoal(
-        BuildConfig.API_KEY,
-        accountUid,
-        body = request,
-      )
-      response.toDomainSavingsGoal(
-        NetworkSavingsGoal(
-          savingsGoalUid = response.savingsGoalUid,
-          name = name,
-          target = request.target,
-          totalSaved = NetworkAmount(
-            currency = REPO_CURRENCY_GBP,
-            minorUnits = 0
-          ),
-          state = REPO_SAVINGS_GOAL_STATE_ACTIVE
-        )
-      )
+      DataResult.Success(Unit)
     } catch (e: Exception) {
-      Log.e(TAG, GOALS_ERROR_CREATING, e)
-      null
+      Log.e(TAG, "Error caching single savings goal", e)
+      DataResult.Error(e)
     }
   }
 
-  override suspend fun deleteSavingsGoal(
-    accountUid: String,
-    savingsGoalUid: String
-  ): Boolean = withContext(Dispatchers.IO) {
-    try {
-      val response = retrofitService.deleteSavingsGoal(
-        BuildConfig.API_KEY,
-        accountUid,
-        savingsGoalUid
-      )
-      response.isSuccessful
-    } catch (e: Exception) {
-      Log.e(TAG, GOALS_ERROR_DELETING, e)
-      false
-    }
-  }
-
-  override suspend fun transferToSavingsGoal(
-    accountUid: String,
-    savingsGoalUid: String,
-    transferUid: String
-  ): Boolean = withContext(Dispatchers.IO) {
-    try {
-      val response = retrofitService.transferMoneyToSavingsGoal(
-        BuildConfig.API_KEY,
-        accountUid,
-        savingsGoalUid,
-        transferUid,
-        body = CreateAmountTransferRequest(
-          amount = NetworkAmount(
-            currency = REPO_CURRENCY_GBP,
-            minorUnits = _accountDetails.value?.roundUpAmount ?: 0
-          ),
-          reference = REPO_ROUND_UP_TRANSFER_REFERENCE
-        )
-      )
-      response.transferUid == transferUid
-    } catch (e: Exception) {
-      Log.e(TAG, ALERT_TRANSFERRING_ERROR, e)
-      false
-    }
-  }
-
-  private suspend fun getAccountsWithResult(): NetworkResult<List<DomainAccount>> =
+  override suspend fun cacheDeleteSavingsGoal(savingsGoalUid: String): DataResult<Unit> = 
     withContext(Dispatchers.IO) {
       try {
-        val response = retrofitService.getAccounts(BuildConfig.API_KEY)
-        NetworkResult.Success(response.toListOfDomainAccounts())
+        database.savingsGoalDao().deleteBySavingsGoalUid(savingsGoalUid)
+        DataResult.Success(Unit)
       } catch (e: Exception) {
-        Log.e(TAG, REPO_FETCHING_ACCOUNTS_ERROR, e)
-        NetworkResult.Error(e)
-      }
-    }
-
-  private suspend fun getBalanceWithResult(accountUid: String): NetworkResult<DomainBalance> =
-    withContext(Dispatchers.IO) {
-      try {
-        val balance = retrofitService.getBalance(BuildConfig.API_KEY, accountUid)
-        NetworkResult.Success(balance.toDomainBalance())
-      } catch (e: Exception) {
-        Log.e(TAG, REPO_FETCHING_BALANCE_ERROR, e)
-        NetworkResult.Error(e)
-      }
-    }
-
-  private suspend fun getTransactionsWithResult(
-    accountUid: String,
-    categoryUid: String
-  ): NetworkResult<List<DomainTransaction>> = withContext(Dispatchers.IO) {
-    try {
-      // Fetch transactions from the last 7 days
-      val changesSince = ZonedDateTime.now().minusDays(7).format(DateTimeFormatter.ISO_INSTANT)
-      val response = retrofitService.getTransactions(
-        BuildConfig.API_KEY,
-        accountUid,
-        categoryUid,
-        changesSince
-      )
-      NetworkResult.Success(response.toListOfDomainTransactions())
-    } catch (e: Exception) {
-      Log.e(TAG, REPO_FETCHING_TRANSACTIONS_ERROR, e)
-      NetworkResult.Error(e)
-    }
-  }
-
-  private suspend fun getSavingsGoalsWithResult(accountUid: String): NetworkResult<List<DomainSavingsGoal>> =
-    withContext(Dispatchers.IO) {
-      try {
-        val goals = retrofitService.getSavingsGoals(BuildConfig.API_KEY, accountUid)
-        NetworkResult.Success(goals.toListOfDomainSavingsGoals())
-      } catch (e: Exception) {
-        Log.e(TAG, REPO_FETCHING_SAVINGS_GOALS_ERROR, e)
-        NetworkResult.Error(e)
+        Log.e(TAG, "Error deleting cached savings goal", e)
+        DataResult.Error(e)
       }
     }
 }
