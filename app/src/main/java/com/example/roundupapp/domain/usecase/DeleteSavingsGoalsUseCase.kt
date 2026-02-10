@@ -15,14 +15,25 @@ class DeleteSavingsGoalUseCase @Inject constructor(
     accountUid: String,
     savingsGoalUid: String
   ): Result<Unit> {
+    if (accountUid.isBlank()) {
+      return Result.failure(ValidationException("Account UID is required"))
+    }
+
+    if (savingsGoalUid.isBlank()) {
+      return Result.failure(ValidationException("Savings goal UID is required"))
+    }
+
     return try {
+      // Delete from server
       when (val deleteResult = repository.deleteSavingsGoalsWithResult(accountUid, savingsGoalUid)) {
         is DataResult.Success -> {
+          // Delete from cache
           repository.cacheDeleteSavingsGoal(savingsGoalUid)
           Result.success(Unit)
         }
-
-        is DataResult.Error -> Result.failure(deleteResult.exception)
+        is DataResult.Error -> {
+          Result.failure(deleteResult.exception)
+        }
       }
     } catch (e: Exception) {
       Result.failure(e)

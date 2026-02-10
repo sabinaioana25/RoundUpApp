@@ -29,12 +29,11 @@ import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
 /**
  * Dialog for creating a new savings goal
- * Collects goal name and target amount with input validation for decimal currency values
+ * Collects goal name and target amount with input validation
  */
-
 @Composable
 fun CreateGoalDialog(
-  onConfirm: (name: String, amount: Int) -> Unit,
+  onConfirm: (name: String, amountMinorUnits: Int) -> Unit,
   onDismiss: () -> Unit
 ) {
   var goalName by remember { mutableStateOf("") }
@@ -57,7 +56,7 @@ fun CreateGoalDialog(
         TextField(
           value = targetAmount,
           onValueChange = {
-            // allow only valid decimal numbers with up to 2 decimal places
+            // Allow only valid decimal numbers with up to 2 decimal places
             if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
               targetAmount = it
             }
@@ -79,7 +78,8 @@ fun CreateGoalDialog(
       Button(
         onClick = {
           if (goalName.isNotBlank() && targetAmount.isNotBlank()) {
-            onConfirm(goalName, targetAmount.toDoubleOrNull()?.toInt() ?: 0)
+            val amountInMinorUnits = convertToMinorUnits(targetAmount)
+            onConfirm(goalName, amountInMinorUnits)
           }
         })
       {
@@ -92,6 +92,17 @@ fun CreateGoalDialog(
       }
     }
   )
+}
+
+private fun convertToMinorUnits(decimalString: String): Int {
+  if (decimalString.isBlank()) return 0
+  
+  return try {
+    val pounds = decimalString.toDouble()
+    (pounds * 100).toInt()
+  } catch (e: NumberFormatException) {
+    0
+  }
 }
 
 @Preview
