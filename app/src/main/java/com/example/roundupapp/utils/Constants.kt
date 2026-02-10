@@ -46,10 +46,8 @@ object Constants {
   const val ALERT_SAMPLE_GOAL_NAME = "Holiday Fund"
 
   // RoundUpRepositoryImpl
-  const val REPO_ACCOUNT_UID_MISSING = "Missing accountUid"
   const val REPO_CURRENCY_GBP = "GBP"
   const val REPO_ROUND_UP_TRANSFER_REFERENCE = "Round-up transfer"
-  const val REPO_FETCHING_GOAL_NOT_FOUND = "No savings goal available"
 
   // Transactions
   const val TRANSACTIONS_DATE_FORMAT_TODAY = "Today"
@@ -84,4 +82,9 @@ object Constants {
     const val TRANSACTION_5_TIME = "2023-06-01"
     const val TRANSACTION_5_NAME = "John Bishop"
   }
+
+  // Offline handling
+  const val HOME_SCREEN_OFFLINE_ERROR = "No internet connection. Showing cached data."
+  const val HOME_SCREEN_OFFLINE_INDICATOR = "Offline mode"
+  const val GOALS_OFFLINE_OPERATION_ERROR = "This operation requires an internet connection"
 }

@@ -3,21 +3,18 @@ package com.example.roundupapp.ui.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -34,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import com.example.roundupapp.domain.models.DataSource
 import com.example.roundupapp.ui.components.Goals
 import com.example.roundupapp.ui.components.Transactions
 import com.example.roundupapp.ui.components.aListOfDomainSavingGoals
@@ -41,11 +39,10 @@ import com.example.roundupapp.ui.components.aListOfTransactions
 import com.example.roundupapp.ui.theme.Dimens
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_BALANCE
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_BUTTON_RETRY
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_ERROR_EMPTY_STATE
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_LOADING_MESSAGE
+import com.example.roundupapp.utils.Constants.HOME_SCREEN_OFFLINE_INDICATOR
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_PULL_TO_REFRESH
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_REFRESH_ICON
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_ROUND_UP_BUTTON
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_SAMPLE_BALANCE
 
@@ -85,50 +82,59 @@ fun HomeScreen(
     contentWindowInsets = WindowInsets(0),
     topBar = {
       TopAppBar(
-        title = { Text(HOME_SCREEN_ROUND_UP_BUTTON) },
-        windowInsets = WindowInsets(0),
-        actions = {
-          IconButton(
-            onClick = { onIntent(Intent.Refresh) },
-            enabled = !state.isLoading
+        title = { 
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
+            verticalAlignment = Alignment.CenterVertically
           ) {
-            Icon(
-              imageVector = Icons.Filled.Refresh,
-              contentDescription = HOME_SCREEN_REFRESH_ICON
-            )
+            Text(HOME_SCREEN_ROUND_UP_BUTTON)
+            
+            // Offline indicator
+            if (state.isOffline) {
+              Icon(
+                imageVector = Icons.Default.CloudOff,
+                contentDescription = HOME_SCREEN_OFFLINE_INDICATOR,
+                tint = MaterialTheme.colorScheme.error
+              )
+            }
           }
-        }
+        },
+        windowInsets = WindowInsets(0)
       )
     },
     snackbarHost = { SnackbarHost(snackbarHostState) },
   ) { paddingValues ->
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .windowInsetsPadding(WindowInsets.safeDrawing)
-        .padding(paddingValues),
-    ) {
-      when {
-        // Initial loading state
-        state.isInitialLoading -> {
+    when {
+      // Initial loading state
+      state.isInitialLoading -> {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+          contentAlignment = Alignment.Center
+        ) {
           Column(
-            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)
           ) {
             CircularProgressIndicator()
             Text(
               text = HOME_SCREEN_LOADING_MESSAGE,
-              style = MaterialTheme.typography.bodyMedium,
-              modifier = Modifier.padding(top = Dimens.Spacing.default)
+              style = MaterialTheme.typography.bodyMedium
             )
           }
         }
+      }
 
-        // No data and not loading
-        !state.hasData && !state.isLoading -> {
+      // No data and not loading
+      !state.hasData && !state.isLoading -> {
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+          contentAlignment = Alignment.Center
+        ) {
           Column(
-            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)
           ) {
@@ -139,26 +145,23 @@ fun HomeScreen(
             Text(
               text = HOME_SCREEN_PULL_TO_REFRESH,
               style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              modifier = Modifier.padding(top = Dimens.Spacing.small, bottom = Dimens.Spacing.small)
+              color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Button(onClick = { onIntent(Intent.Refresh) }) {
-              Text(HOME_SCREEN_BUTTON_RETRY)
-            }
           }
         }
+      }
 
-        else -> {
-          PullToRefreshBox(
-            isRefreshing = state.isRefreshing,
-            onRefresh = { onIntent(Intent.Refresh) },
-            modifier = Modifier.fillMaxSize()
-          ) {
-            HomeScreenContent(
-              state = state,
-              onIntent = onIntent
-            )
-          }
+      // Content with pull-to-refresh
+      else -> {
+        PullToRefreshBox(
+          isRefreshing = state.isRefreshing,
+          onRefresh = { onIntent(Intent.Refresh) },
+          modifier = Modifier.padding(paddingValues)
+        ) {
+          HomeScreenContent(
+            state = state,
+            onIntent = onIntent
+          )
         }
       }
     }
@@ -200,14 +203,14 @@ private fun HomeScreenContent(
       }
     }
 
-    // Goals
+    // Goals Section
     Goals(
       state = state,
       onIntent = onIntent,
       isInProgress = state.loadingState is LoadingState.InProgress
     )
 
-    // Transactions
+    // Transactions Section
     Transactions(
       modifier = Modifier
         .weight(Dimens.Layout.defaultWeight)
@@ -236,11 +239,30 @@ fun HomeScreenWithDataPreview() {
   RoundUpAppTheme {
     HomeScreen(
       state = ScreenState(
-        loadingState = LoadingState.InitialLoading,
+        loadingState = LoadingState.Idle,
         transactions = aListOfTransactions,
         balance = HOME_SCREEN_SAMPLE_BALANCE,
         savingsGoals = aListOfDomainSavingGoals,
-        roundedAmount = 44552
+        roundedAmount = 44552,
+        dataSource = DataSource.NETWORK
+      ),
+      onIntent = {}
+    )
+  }
+}
+
+@PreviewLightDark
+@Composable
+fun HomeScreenOfflinePreview() {
+  RoundUpAppTheme {
+    HomeScreen(
+      state = ScreenState(
+        loadingState = LoadingState.Idle,
+        transactions = aListOfTransactions,
+        balance = HOME_SCREEN_SAMPLE_BALANCE,
+        savingsGoals = aListOfDomainSavingGoals,
+        roundedAmount = 44552,
+        dataSource = DataSource.CACHE
       ),
       onIntent = {}
     )

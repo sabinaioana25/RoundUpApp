@@ -2,7 +2,9 @@ package com.example.roundupapp.domain.usecase
 
 import android.util.Log
 import com.example.roundupapp.data.DataResult
+import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
 import com.example.roundupapp.domain.models.AccountDetails
+import com.example.roundupapp.domain.models.DataSource
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
@@ -11,24 +13,45 @@ import javax.inject.Inject
  * Coordinates fetching accounts, transactions, savings goals, and balance
  */
 class AccountDetailsUseCase @Inject constructor(
-  private val repository: RoundUpRepository
+  private val repository: RoundUpRepository,
+  private val connectivityChecker: NetworkConnectivityChecker
 ) {
   suspend operator fun invoke(): Result<AccountDetails> {
     return try {
-      // Try network first
-      when (val networkResult = fetchFromNetwork()) {
-        is DataResult.Success -> Result.success(networkResult.data)
-        is DataResult.Error -> {
-          // Network failed, try cache
-          when (val cacheResult = fetchFromCache()) {
-            is DataResult.Success -> Result.success(cacheResult.data)
-            is DataResult.Error -> Result.failure(networkResult.exception)
+      val isOnline = connectivityChecker.isNetworkAvailable()
+      
+      if (isOnline) {
+        // Try network first when online
+        when (val networkResult = fetchFromNetwork()) {
+          is DataResult.Success -> {
+            Result.success(networkResult.data.copy(dataSource = DataSource.NETWORK))
+          }
+          is DataResult.Error -> {
+            // Network failed, fallback to cache
+            Log.w(TAG, "Network fetch failed, falling back to cache", networkResult.exception)
+            fetchFromCacheWithFallback(networkResult.exception)
           }
         }
+      } else {
+        // Offline - use cache directly
+        Log.d(TAG, "Device offline, using cached data")
+        fetchFromCacheWithFallback(OfflineException("No network connectivity"))
       }
     } catch (e: Exception) {
       Log.e(TAG, "Unexpected error in AccountDetailsUseCase", e)
       Result.failure(e)
+    }
+  }
+
+  private suspend fun fetchFromCacheWithFallback(networkError: Exception): Result<AccountDetails> {
+    return when (val cacheResult = fetchFromCache()) {
+      is DataResult.Success -> {
+        Result.success(cacheResult.data.copy(dataSource = DataSource.CACHE))
+      }
+      is DataResult.Error -> {
+        // No cache available, return original network error
+        Result.failure(networkError)
+      }
     }
   }
 
@@ -48,7 +71,7 @@ class AccountDetailsUseCase @Inject constructor(
     val accountUid = account.accountUid
     val categoryUid = account.defaultCategory
 
-    // Fetch all data in parallel (conceptually - you could use async/await for true parallelism)
+    // Fetch all data (could use async/await for true parallelism)
     val transactionsResult = repository.getTransactionsWithResult(accountUid, categoryUid)
     val savingsGoalsResult = repository.getSavingsGoalsWithResult(accountUid)
     val balanceResult = repository.getBalanceWithResult(accountUid)
@@ -97,7 +120,8 @@ class AccountDetailsUseCase @Inject constructor(
         accounts = accounts,
         transactions = transactions,
         savingsGoals = savingsGoals,
-        balance = balance
+        balance = balance,
+        dataSource = DataSource.NETWORK
       )
     )
   }
@@ -141,7 +165,8 @@ class AccountDetailsUseCase @Inject constructor(
         accounts = accounts,
         transactions = transactions,
         savingsGoals = savingsGoals,
-        balance = balance
+        balance = balance,
+        dataSource = DataSource.CACHE
       )
     )
   }
@@ -150,3 +175,8 @@ class AccountDetailsUseCase @Inject constructor(
     private val TAG = AccountDetailsUseCase::class.java.simpleName
   }
 }
+
+/**
+ * Exception thrown when device is offline
+ */
+class OfflineException(message: String) : Exception(message)

@@ -5,5 +5,11 @@ data class AccountDetails(
   val transactions: List<DomainTransaction>,
   val savingsGoals: List<DomainSavingsGoal>,
   val balance: String,
-  val roundUpAmount: Int = 0
+  val roundUpAmount: Int = 0,
+  val dataSource: DataSource
 )
+
+enum class DataSource {
+  NETWORK,
+  CACHE
+}

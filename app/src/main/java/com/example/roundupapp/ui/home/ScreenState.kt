@@ -1,5 +1,6 @@
 package com.example.roundupapp.ui.home
 
+import com.example.roundupapp.domain.models.DataSource
 import com.example.roundupapp.domain.models.DomainAccount
 import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.models.DomainTransaction
@@ -9,8 +10,6 @@ sealed interface LoadingState {
   data object InitialLoading : LoadingState
   data object Refreshing : LoadingState
   data class InProgress(val operation: Operation) : LoadingState
-  data class Error(val error: UiError) : LoadingState
-
 
   enum class Operation {
     CREATING_GOAL,
@@ -20,8 +19,8 @@ sealed interface LoadingState {
 }
 
 /**
- * UI state model for the home screen containing account data, transactions, and savings goals.
- * Note: Proper Loading, Error, and Success states were not implemented due to time constraints.
+ * UI state model for the home screen
+ * Tracks data source to show offline indicators
  */
 data class ScreenState(
   val loadingState: LoadingState = LoadingState.InitialLoading,
@@ -32,7 +31,8 @@ data class ScreenState(
   val roundedAmount: Int = 0,
   val error: UiError? = null,
   val accountUid: String = "",
-  val defaultCategory: String = ""
+  val defaultCategory: String = "",
+  val dataSource: DataSource = DataSource.NETWORK
 ) {
   val isLoading: Boolean
     get() = loadingState != LoadingState.Idle
@@ -45,10 +45,16 @@ data class ScreenState(
 
   val hasData: Boolean
     get() = accounts.isNotEmpty()
+
+  val canPerformOperations: Boolean
+    get() = loadingState == LoadingState.Idle && hasData
+
+  val isOffline: Boolean
+    get() = dataSource == DataSource.CACHE
 }
 
 /**
- * shows what types of errors can occur
+ * UI error types
  */
 sealed interface UiError {
   val message: String
@@ -57,4 +63,5 @@ sealed interface UiError {
   data class ValidationError(override val message: String) : UiError
   data class OperationError(override val message: String, val operation: LoadingState.Operation) : UiError
   data class DataError(override val message: String) : UiError
+  data class OfflineError(override val message: String) : UiError
 }

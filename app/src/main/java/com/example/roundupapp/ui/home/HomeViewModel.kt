@@ -6,6 +6,7 @@ import com.example.roundupapp.domain.usecase.AccountDetailsUseCase
 import com.example.roundupapp.domain.usecase.CalculateRoundUpUseCase
 import com.example.roundupapp.domain.usecase.CreateSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.DeleteSavingsGoalUseCase
+import com.example.roundupapp.domain.usecase.OfflineException
 import com.example.roundupapp.domain.usecase.TransferToSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.ValidationException
 import com.example.roundupapp.utils.Constants.ALERT_TRANSFER_FAILED
@@ -13,6 +14,7 @@ import com.example.roundupapp.utils.Constants.GOALS_CREATING_FAILURE
 import com.example.roundupapp.utils.Constants.GOALS_FAILURE_DELETING
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_ERROR_LOADING_INITIAL_DATA
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_NETWORK_ERROR_LOADING_INITIAL_DATA
+import com.example.roundupapp.utils.Constants.HOME_SCREEN_OFFLINE_ERROR
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -93,6 +95,7 @@ class HomeViewModel @Inject constructor(
             roundedAmount = roundUp,
             accountUid = firstAccount?.accountUid.orEmpty(),
             defaultCategory = firstAccount?.defaultCategory.orEmpty(),
+            dataSource = details.dataSource,
             error = null
           )
         } else {
@@ -100,6 +103,7 @@ class HomeViewModel @Inject constructor(
           it.copy(
             loadingState = LoadingState.Idle,
             error = when (error) {
+              is OfflineException -> UiError.OfflineError(HOME_SCREEN_OFFLINE_ERROR)
               is IOException -> UiError.NetworkError(HOME_SCREEN_NETWORK_ERROR_LOADING_INITIAL_DATA)
               else -> UiError.DataError(HOME_SCREEN_ERROR_LOADING_INITIAL_DATA)
             }
@@ -140,6 +144,7 @@ class HomeViewModel @Inject constructor(
             loadingState = LoadingState.Idle,
             error = when (error) {
               is ValidationException -> UiError.ValidationError(error.message ?: GOALS_CREATING_FAILURE)
+              is OfflineException -> UiError.OfflineError(error.message ?: HOME_SCREEN_OFFLINE_ERROR)
               else -> UiError.OperationError(
                 GOALS_CREATING_FAILURE,
                 LoadingState.Operation.CREATING_GOAL
@@ -178,6 +183,7 @@ class HomeViewModel @Inject constructor(
             loadingState = LoadingState.Idle,
             error = when (error) {
               is ValidationException -> UiError.ValidationError(error.message ?: GOALS_FAILURE_DELETING)
+              is OfflineException -> UiError.OfflineError(error.message ?: HOME_SCREEN_OFFLINE_ERROR)
               else -> UiError.OperationError(
                 GOALS_FAILURE_DELETING,
                 LoadingState.Operation.DELETING_GOAL
@@ -221,6 +227,7 @@ class HomeViewModel @Inject constructor(
             loadingState = LoadingState.Idle,
             error = when (error) {
               is ValidationException -> UiError.ValidationError(error.message ?: ALERT_TRANSFER_FAILED)
+              is OfflineException -> UiError.OfflineError(error.message ?: HOME_SCREEN_OFFLINE_ERROR)
               else -> UiError.OperationError(
                 ALERT_TRANSFER_FAILED,
                 LoadingState.Operation.TRANSFERRING
