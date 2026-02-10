@@ -1,6 +1,6 @@
 package com.example.roundupapp.domain.usecase
 
-import com.example.roundupapp.domain.repository.RoundUpRepository
+import com.example.roundupapp.domain.models.DomainTransaction
 import javax.inject.Inject
 
 /**
@@ -9,17 +9,13 @@ import javax.inject.Inject
  *
  */
 class CalculateRoundUpUseCase @Inject constructor(
-  private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke() {
-    val details = repository.accountDetails.value ?: return
-
-    val roundUpTotal = details.transactions
+  operator fun invoke(transactions: List<DomainTransaction>): Int {
+    return transactions
       .filter { it.direction == "OUT" }
       .sumOf { item ->
         val remainder = item.amount.minorUnits % 100
         if (remainder == 0) 0 else 100 - remainder
       }
-    repository.setRoundUpAmount(roundUpTotal)
   }
 }

@@ -10,18 +10,15 @@ import javax.inject.Inject
 class DeleteSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke() {
-    val details = repository.accountDetails.value ?: return
-    val accountUid = details.accounts.firstOrNull()?.accountUid ?: return
-    val savingsGoalUid = details.savingsGoals.firstOrNull()?.savingsGoalUid ?: return
-
-    val wasDeleted = repository.deleteSavingsGoal(
-      accountUid = accountUid,
-      savingsGoalUid = savingsGoalUid
-    )
-
-    if (wasDeleted) {
-      repository.removeSavingsGoal(savingsGoalUid)
+  suspend operator fun invoke(
+    accountUid: String,
+    savingsGoalUid: String
+  ): Result<Unit> =
+    try {
+      repository.deleteSavingsGoalsWithResult(accountUid, savingsGoalUid)
+      repository.cacheDeleteSavingsGoal(savingsGoalUid)
+      Result.success(Unit)
+    } catch (e: Exception) {
+      Result.failure(e)
     }
-  }
 }

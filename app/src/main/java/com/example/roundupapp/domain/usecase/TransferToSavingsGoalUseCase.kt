@@ -1,7 +1,7 @@
 package com.example.roundupapp.domain.usecase
 
 import com.example.roundupapp.domain.repository.RoundUpRepository
-import com.example.roundupapp.utils.randomHex
+import com.example.roundupapp.utils.randomUuidV4
 import javax.inject.Inject
 
 /**
@@ -11,23 +11,21 @@ import javax.inject.Inject
 class TransferToSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke(): Boolean {
-    val details = repository.accountDetails.value ?: return false
-    val accountUid = details.accounts.firstOrNull()?.accountUid ?: return false
-    val goal = details.savingsGoals.firstOrNull() ?: return false
-
-    // Random-generated transfer UID for the transfer
-    val transferUidBase = "aaaaa880-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
-
-    val success = repository.transferToSavingsGoal(
-      accountUid = accountUid,
-      savingsGoalUid = goal.savingsGoalUid,
-      transferUid = transferUidBase.dropLast(4) + randomHex(4)
-    )
-
-    if (success) {
-      repository.refreshFromNetwork()
+  suspend operator fun invoke(
+    accountUid: String,
+    savingsGoalUid: String,
+    roundUpAmount: Int,
+    transferUid: String = randomUuidV4()
+  ): Result<Boolean> =
+    try {
+      repository.transferToSavingsGoalWithResult(
+        accountUid = accountUid,
+        savingsGoalUid = savingsGoalUid,
+        amountMinorUnits = roundUpAmount,
+        transferUid = transferUid
+      )
+      Result.success(true)
+    } catch (e: Exception) {
+      Result.failure(e)
     }
-    return success
-  }
 }

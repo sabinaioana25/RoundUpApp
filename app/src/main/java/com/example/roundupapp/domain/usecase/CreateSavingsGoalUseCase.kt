@@ -1,5 +1,7 @@
 package com.example.roundupapp.domain.usecase
 
+import com.example.roundupapp.data.NetworkResult
+import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import javax.inject.Inject
 
@@ -10,17 +12,28 @@ import javax.inject.Inject
 class CreateSavingsGoalUseCase @Inject constructor(
   private val repository: RoundUpRepository
 ) {
-  suspend operator fun invoke(name: String, amountMinorUnits: Int) {
-    val accountUid = repository.accountDetails.value?.accounts?.firstOrNull()?.accountUid
-      ?: return
+  suspend operator fun invoke(
+    accountUid: String,
+    name: String,
+    amountMinorUnits: Int,
+    currency: String
+  ): Result<DomainSavingsGoal> =
+    try {
+      repository.createSavingsGoalsRequest(accountUid, name, currency, amountMinorUnits * 100)
 
-    val newGoal =  repository.createSavingsGoal(
-      accountUid = accountUid,
-      name = name,
-      amountMinorUnits = amountMinorUnits * 100,
-      currency = "GBP"
-    ) ?: return
+      val goal = when (val goals = repository.getSavingsGoalsWithResult(accountUid)) {
+        is NetworkResult.Success -> {
+          val fetchedGoal = goals.data.first()
+          repository.cacheSavingsGoal(accountUid, fetchedGoal)
+          fetchedGoal
+        }
 
-    repository.addSavingsGoal(newGoal, accountUid)
-  }
+        is NetworkResult.Error -> {
+          throw goals.exception
+        }
+      }
+      Result.success(goal)
+    } catch (e: Exception) {
+      Result.failure(e)
+    }
 }

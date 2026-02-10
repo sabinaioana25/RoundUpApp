@@ -36,8 +36,8 @@ import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants.ALERT_SAMPLE_GOAL_NAME
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
 import com.example.roundupapp.utils.Constants.GOALS_CREATE_GOAL_BUTTON
-import com.example.roundupapp.utils.Constants.GOALS_DELETING_BUTTON
 import com.example.roundupapp.utils.Constants.GOALS_DELETE_GOAL_BUTTON
+import com.example.roundupapp.utils.Constants.GOALS_DELETING_BUTTON
 import com.example.roundupapp.utils.Constants.GOALS_ROUND_UP_AVAILABLE
 import com.example.roundupapp.utils.Constants.GOALS_TARGET
 import com.example.roundupapp.utils.Constants.GOALS_TOTAL_SAVED
@@ -59,11 +59,14 @@ fun Goals(
   if (state.savingsGoals.isEmpty()) {
     Button(
       onClick = { showCreateGoalDialog = true },
-      enabled = !isInProgress
+      enabled = !isInProgress,
+      modifier = modifier
     ) {
-      if (isInProgress && state.loadingState is LoadingState.InProgress
-        && state.loadingState.operation == LoadingState.Operation.CREATING_GOAL
-      ) {
+      val isCreating = isInProgress &&
+        state.loadingState is LoadingState.InProgress &&
+        state.loadingState.operation == LoadingState.Operation.CREATING_GOAL
+
+      if (isCreating) {
         CircularProgressIndicator(
           modifier = Modifier.size(Dimens.Spacing.default),
           strokeWidth = Dimens.Stroke.default,
@@ -147,14 +150,15 @@ private fun CreatedGoal(
                 fontWeight = FontWeight.Bold
               )
             }
+            val isTransferring = isInProgress &&
+              state.loadingState is LoadingState.InProgress &&
+              state.loadingState.operation == LoadingState.Operation.TRANSFERRING
 
             Button(
               onClick = { onIntent(Intent.TransferToSavingsGoal) },
               enabled = !isInProgress && state.roundedAmount > 0
             ) {
-              if (isInProgress && state.loadingState is LoadingState.InProgress
-                && state.loadingState.operation == LoadingState.Operation.TRANSFERRING
-              ) {
+              if (isTransferring) {
                 Row(
                   horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
                   verticalAlignment = Alignment.CenterVertically
@@ -173,14 +177,16 @@ private fun CreatedGoal(
           }
         }
 
+        val isDeleting = isInProgress &&
+          state.loadingState is LoadingState.InProgress &&
+          state.loadingState.operation == LoadingState.Operation.DELETING_GOAL
+
         OutlinedButton(
           onClick = { onIntent(Intent.DeleteSavingsGoal) },
           enabled = !isInProgress,
           modifier = Modifier.fillMaxWidth()
         ) {
-          if (isInProgress && state.loadingState is LoadingState.InProgress
-            && state.loadingState.operation == LoadingState.Operation.DELETING_GOAL
-          ) {
+          if (isDeleting) {
             Row(
               horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
               verticalAlignment = Alignment.CenterVertically

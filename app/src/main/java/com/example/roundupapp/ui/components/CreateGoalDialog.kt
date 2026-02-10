@@ -24,7 +24,6 @@ import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CAN
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CREATE
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_CURRENCY_PREFIX
-//import com.example.roundupapp.utils.Constants.ALERT_DIALOG_DECIMAL_REGEX
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
