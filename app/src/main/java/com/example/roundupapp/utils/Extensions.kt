@@ -7,8 +7,9 @@ import java.security.SecureRandom
  * Example: 12345 -> "123.45"
  */
 fun Int?.toGbp(): String {
-  val pounds = this?.div(100)
-  val pence = this?.rem(100)
+  val value = this ?: 0
+  val pounds = value.div(100)
+  val pence = value.rem(100)
   return "£$pounds.${"%02d".format(pence)}"
 }
 

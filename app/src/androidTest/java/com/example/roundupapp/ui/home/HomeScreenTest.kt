@@ -11,6 +11,7 @@ import com.example.roundupapp.domain.models.DomainTransaction
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.collections.emptyList
 
 @RunWith(AndroidJUnit4::class)
 class HomeScreenTest {
