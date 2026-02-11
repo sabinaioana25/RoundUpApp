@@ -17,6 +17,16 @@ import com.example.roundupapp.utils.Constants.GOALS_NO_SAVINGS_GOALS_TO_DELETE
 import com.example.roundupapp.utils.Constants.GOALS_VALUE_MUST_BE_GREATER_THAN_ZERO
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_ERROR_LOADING_INITIAL_DATA
 import com.example.roundupapp.utils.Constants.HOME_SCREEN_NO_ROUND_UP_AVAILABLE
+import com.example.roundupapp.utils.Constants.LogMessages.ALREADY_LOADING
+import com.example.roundupapp.utils.Constants.LogMessages.CREATE_GOAL_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.CREATE_GOAL_SUCCESS
+import com.example.roundupapp.utils.Constants.LogMessages.DELETE_GOAL_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.DELETE_GOAL_SUCCESS
+import com.example.roundupapp.utils.Constants.LogMessages.OPERATION_IN_PROGRESS_CREATE
+import com.example.roundupapp.utils.Constants.LogMessages.OPERATION_IN_PROGRESS_DELETE
+import com.example.roundupapp.utils.Constants.LogMessages.OPERATION_IN_PROGRESS_TRANSFER
+import com.example.roundupapp.utils.Constants.LogMessages.TRANSFER_COMPLETED_SUCCESS
+import com.example.roundupapp.utils.Constants.LogMessages.TRANSFER_FAILED
 import com.example.roundupapp.utils.Constants.REPO_ACCOUNT_UID_MISSING
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -75,7 +85,7 @@ class HomeViewModel @Inject constructor(
   private fun loadAccountDetails(isInitialLoad: Boolean) {
     // Prevent concurrent loads
     if (_state.value.isLoading) {
-      Log.d(TAG, "Already loading, skipping duplicate request")
+      Log.d(TAG, ALREADY_LOADING)
       return
     }
 
@@ -127,7 +137,7 @@ class HomeViewModel @Inject constructor(
 
   private fun createSavingsGoal(name: String, amountInPounds: Int, currency: String) {
     if (_state.value.isLoading) {
-      Log.d(TAG, "Operation in progress, skipping create goal")
+      Log.d(TAG, OPERATION_IN_PROGRESS_CREATE)
       return
     }
 
@@ -165,11 +175,11 @@ class HomeViewModel @Inject constructor(
       )
 
       if (result.isSuccess) {
-        Log.d(TAG, "Goal created successfully")
+        Log.d(TAG, CREATE_GOAL_SUCCESS)
         _state.update { it.copy(loadingState = LoadingState.Idle) }
         loadAccountDetails(isInitialLoad = false)
       } else {
-        Log.e(TAG, "Failed to create goal", result.exceptionOrNull())
+        Log.e(TAG, CREATE_GOAL_FAILED, result.exceptionOrNull())
         _state.update {
           it.copy(
             loadingState = LoadingState.Idle,
@@ -185,7 +195,7 @@ class HomeViewModel @Inject constructor(
 
   private fun deleteSavingsGoal() {
     if (_state.value.isLoading) {
-      Log.d(TAG, "Operation in progress, skipping delete goal")
+      Log.d(TAG, OPERATION_IN_PROGRESS_DELETE)
       return
     }
 
@@ -210,11 +220,11 @@ class HomeViewModel @Inject constructor(
       val result = deleteSavingsGoalUseCase(accountUid, savingsGoalUid)
 
       if (result.isSuccess) {
-        Log.d(TAG, "Goal deleted successfully")
+        Log.d(TAG, DELETE_GOAL_SUCCESS)
         _state.update { it.copy(loadingState = LoadingState.Idle) }
         loadAccountDetails(isInitialLoad = false)
       } else {
-        Log.e(TAG, "Failed to delete goal", result.exceptionOrNull())
+        Log.e(TAG, DELETE_GOAL_FAILED, result.exceptionOrNull())
         _state.update {
           it.copy(
             loadingState = LoadingState.Idle,
@@ -230,7 +240,7 @@ class HomeViewModel @Inject constructor(
 
   private fun transferToSavingsGoal() {
     if (_state.value.isLoading) {
-      Log.d(TAG, "Operation in progress, skipping transfer")
+      Log.d(TAG, OPERATION_IN_PROGRESS_TRANSFER)
       return
     }
 
@@ -263,11 +273,11 @@ class HomeViewModel @Inject constructor(
       )
 
       if (result.isSuccess) {
-        Log.d(TAG, "Transfer completed successfully")
+        Log.d(TAG, TRANSFER_COMPLETED_SUCCESS)
         _state.update { it.copy(loadingState = LoadingState.Idle) }
         loadAccountDetails(isInitialLoad = false)
       } else {
-        Log.e(TAG, "Failed to transfer", result.exceptionOrNull())
+        Log.e(TAG, TRANSFER_FAILED, result.exceptionOrNull())
         _state.update {
           it.copy(
             loadingState = LoadingState.Idle,

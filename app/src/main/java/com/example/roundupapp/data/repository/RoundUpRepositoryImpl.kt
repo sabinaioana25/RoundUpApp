@@ -24,8 +24,26 @@ import com.example.roundupapp.domain.models.toListOfDomainSavingsGoals
 import com.example.roundupapp.domain.models.toListOfDomainTransactions
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.utils.Constants.ALERT_TRANSFER_FAILURE_EXCEPTION
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_CACHING_ACCOUNTS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_CACHING_BALANCE
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_CACHING_SAVINGS_GOALS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_CACHING_SINGLE_SAVINGS_GOAL
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_CACHING_TRANSACTIONS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_CREATING_SAVINGS_GOAL
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_DELETING_CACHED_SAVINGS_GOAL
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_DELETING_SAVINGS_GOAL
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_FETCHING_ACCOUNTS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_FETCHING_BALANCE
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_FETCHING_SAVINGS_GOALS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_FETCHING_TRANSACTIONS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_READING_CACHED_ACCOUNTS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_READING_CACHED_BALANCE
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_READING_CACHED_SAVINGS_GOALS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_READING_CACHED_TRANSACTIONS
+import com.example.roundupapp.utils.Constants.LogMessages.ERROR_TRANSFERRING_TO_SAVINGS_GOAL
 import com.example.roundupapp.utils.Constants.REPO_CURRENCY_GBP
 import com.example.roundupapp.utils.Constants.REPO_ROUND_UP_TRANSFER_REFERENCE
+
 import com.example.roundupapp.utils.toGbp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -48,14 +66,14 @@ class RoundUpRepositoryImpl(
   // ================================================================================
   // Network Operations
   // ================================================================================
-  
+
   override suspend fun getAccountsWithResult(): DataResult<List<DomainAccount>> =
     withContext(Dispatchers.IO) {
       try {
         val response = retrofitService.getAccounts(BuildConfig.API_KEY)
         DataResult.Success(response.toListOfDomainAccounts())
       } catch (e: Exception) {
-        Log.e(TAG, "Error fetching accounts", e)
+        Log.e(TAG, ERROR_FETCHING_ACCOUNTS, e)
         DataResult.Error(e)
       }
     }
@@ -66,7 +84,7 @@ class RoundUpRepositoryImpl(
         val balance = retrofitService.getBalance(BuildConfig.API_KEY, accountUid)
         DataResult.Success(balance.toDomainBalance())
       } catch (e: Exception) {
-        Log.e(TAG, "Error fetching balance", e)
+        Log.e(TAG, ERROR_FETCHING_BALANCE, e)
         DataResult.Error(e)
       }
     }
@@ -85,7 +103,7 @@ class RoundUpRepositoryImpl(
       )
       DataResult.Success(response.toListOfDomainTransactions())
     } catch (e: Exception) {
-      Log.e(TAG, "Error fetching transactions", e)
+      Log.e(TAG, ERROR_FETCHING_TRANSACTIONS, e)
       DataResult.Error(e)
     }
   }
@@ -96,7 +114,7 @@ class RoundUpRepositoryImpl(
         val goals = retrofitService.getSavingsGoals(BuildConfig.API_KEY, accountUid)
         DataResult.Success(goals.toListOfDomainSavingsGoals())
       } catch (e: Exception) {
-        Log.e(TAG, "Error fetching savings goals", e)
+        Log.e(TAG, ERROR_FETCHING_SAVINGS_GOALS, e)
         DataResult.Error(e)
       }
     }
@@ -122,7 +140,7 @@ class RoundUpRepositoryImpl(
       )
       DataResult.Success(response)
     } catch (e: Exception) {
-      Log.e(TAG, "Error creating savings goal", e)
+      Log.e(TAG, ERROR_CREATING_SAVINGS_GOAL, e)
       DataResult.Error(e)
     }
   }
@@ -155,7 +173,7 @@ class RoundUpRepositoryImpl(
       }
       DataResult.Success(true)
     } catch (e: Exception) {
-      Log.e(TAG, "Error transferring to savings goal", e)
+      Log.e(TAG, ERROR_TRANSFERRING_TO_SAVINGS_GOAL, e)
       DataResult.Error(e)
     }
   }
@@ -172,7 +190,7 @@ class RoundUpRepositoryImpl(
       )
       DataResult.Success(Unit)
     } catch (e: Exception) {
-      Log.e(TAG, "Error deleting savings goal", e)
+      Log.e(TAG, ERROR_DELETING_SAVINGS_GOAL, e)
       DataResult.Error(e)
     }
   }
@@ -180,7 +198,7 @@ class RoundUpRepositoryImpl(
   // ================================================================================
   // Database Operations - Read
   // ================================================================================
-  
+
   override suspend fun getCachedAccounts(): DataResult<List<DomainAccount>> = withContext(Dispatchers.IO) {
     try {
       val accounts = database.accountDao().getAll().map { entity ->
@@ -193,7 +211,7 @@ class RoundUpRepositoryImpl(
       }
       DataResult.Success(accounts)
     } catch (e: Exception) {
-      Log.e(TAG, "Error reading cached accounts", e)
+      Log.e(TAG, ERROR_READING_CACHED_ACCOUNTS, e)
       DataResult.Error(e)
     }
   }
@@ -217,7 +235,7 @@ class RoundUpRepositoryImpl(
           }
         DataResult.Success(transactions)
       } catch (e: Exception) {
-        Log.e(TAG, "Error reading cached transactions", e)
+        Log.e(TAG, ERROR_READING_CACHED_TRANSACTIONS, e)
         DataResult.Error(e)
       }
     }
@@ -246,7 +264,7 @@ class RoundUpRepositoryImpl(
           }
         DataResult.Success(goals)
       } catch (e: Exception) {
-        Log.e(TAG, "Error reading cached savings goals", e)
+        Log.e(TAG, ERROR_READING_CACHED_SAVINGS_GOALS, e)
         DataResult.Error(e)
       }
     }
@@ -266,7 +284,7 @@ class RoundUpRepositoryImpl(
         }
       DataResult.Success(balance)
     } catch (e: Exception) {
-      Log.e(TAG, "Error reading cached balance", e)
+      Log.e(TAG, ERROR_READING_CACHED_BALANCE, e)
       DataResult.Error(e)
     }
   }
@@ -274,8 +292,8 @@ class RoundUpRepositoryImpl(
   // ================================================================================
   // Database Operations - Write
   // ================================================================================
-  
-  override suspend fun cacheAccounts(accounts: List<DomainAccount>): DataResult<Unit> = 
+
+  override suspend fun cacheAccounts(accounts: List<DomainAccount>): DataResult<Unit> =
     withContext(Dispatchers.IO) {
       try {
         database.accountDao().insertAll(accounts.map {
@@ -287,7 +305,7 @@ class RoundUpRepositoryImpl(
         })
         DataResult.Success(Unit)
       } catch (e: Exception) {
-        Log.e(TAG, "Error caching accounts", e)
+        Log.e(TAG, ERROR_CACHING_ACCOUNTS, e)
         DataResult.Error(e)
       }
     }
@@ -307,7 +325,7 @@ class RoundUpRepositoryImpl(
       )
       DataResult.Success(Unit)
     } catch (e: Exception) {
-      Log.e(TAG, "Error caching balance", e)
+      Log.e(TAG, ERROR_CACHING_BALANCE, e)
       DataResult.Error(e)
     }
   }
@@ -329,7 +347,7 @@ class RoundUpRepositoryImpl(
       })
       DataResult.Success(Unit)
     } catch (e: Exception) {
-      Log.e(TAG, "Error caching transactions", e)
+      Log.e(TAG, ERROR_CACHING_TRANSACTIONS, e)
       DataResult.Error(e)
     }
   }
@@ -354,7 +372,7 @@ class RoundUpRepositoryImpl(
       })
       DataResult.Success(Unit)
     } catch (e: Exception) {
-      Log.e(TAG, "Error caching savings goals", e)
+      Log.e(TAG, ERROR_CACHING_SAVINGS_GOALS, e)
       DataResult.Error(e)
     }
   }
@@ -380,18 +398,18 @@ class RoundUpRepositoryImpl(
       )
       DataResult.Success(Unit)
     } catch (e: Exception) {
-      Log.e(TAG, "Error caching single savings goal", e)
+      Log.e(TAG, ERROR_CACHING_SINGLE_SAVINGS_GOAL, e)
       DataResult.Error(e)
     }
   }
 
-  override suspend fun cacheDeleteSavingsGoal(savingsGoalUid: String): DataResult<Unit> = 
+  override suspend fun cacheDeleteSavingsGoal(savingsGoalUid: String): DataResult<Unit> =
     withContext(Dispatchers.IO) {
       try {
         database.savingsGoalDao().deleteBySavingsGoalUid(savingsGoalUid)
         DataResult.Success(Unit)
       } catch (e: Exception) {
-        Log.e(TAG, "Error deleting cached savings goal", e)
+        Log.e(TAG, ERROR_DELETING_CACHED_SAVINGS_GOAL, e)
         DataResult.Error(e)
       }
     }

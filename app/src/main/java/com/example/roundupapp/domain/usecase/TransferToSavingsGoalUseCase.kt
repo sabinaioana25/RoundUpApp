@@ -6,6 +6,12 @@ import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
 import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.domain.validation.Validator
+import com.example.roundupapp.utils.Constants.ERROR_UNEXPECTED_TRANSFER
+import com.example.roundupapp.utils.Constants.LogMessages.TRANSFER_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.TRANSFER_INITIATING
+import com.example.roundupapp.utils.Constants.LogMessages.TRANSFER_SUCCESS
+import com.example.roundupapp.utils.Constants.OFFLINE_TRANSFER_ERROR
+import com.example.roundupapp.utils.Constants.VALIDATION_TRANSFER_AMOUNT
 import com.example.roundupapp.utils.randomUuidV4
 import javax.inject.Inject
 
@@ -29,18 +35,18 @@ class TransferToSavingsGoalUseCase @Inject constructor(
     return try {
       // Check connectivity first
       if (!connectivityChecker.isNetworkAvailable()) {
-        return Result.failure(OfflineException("Cannot transfer funds while offline"))
+        return Result.failure(OfflineException(OFFLINE_TRANSFER_ERROR))
       }
 
       // Centralized validation
       Validator.requireAccountUid(accountUid)
       Validator.requireSavingsGoalUid(savingsGoalUid)
-      Validator.requirePositiveAmount(amountMinorUnits, "Transfer amount")
+      Validator.requirePositiveAmount(amountMinorUnits, VALIDATION_TRANSFER_AMOUNT)
 
       // Generate unique transfer UID
       val transferUid = randomUuidV4()
 
-      Log.d(TAG, "Initiating transfer: $amountMinorUnits pence to goal $savingsGoalUid")
+      Log.d(TAG, String.format(TRANSFER_INITIATING, amountMinorUnits, savingsGoalUid))
 
       when (val result = repository.transferToSavingsGoalWithResult(
         accountUid = accountUid,
@@ -49,16 +55,16 @@ class TransferToSavingsGoalUseCase @Inject constructor(
         transferUid = transferUid
       )) {
         is DataResult.Success -> {
-          Log.d(TAG, "Transfer successful: $transferUid")
+          Log.d(TAG, String.format(TRANSFER_SUCCESS, transferUid))
           Result.success(result.data)
         }
         is DataResult.Error -> {
-          Log.e(TAG, "Transfer failed: $transferUid", result.exception)
+          Log.e(TAG, String.format(TRANSFER_FAILED, transferUid), result.exception)
           Result.failure(result.exception)
         }
       }
     } catch (e: Exception) {
-      Log.e(TAG, "Unexpected error during transfer", e)
+      Log.e(TAG, ERROR_UNEXPECTED_TRANSFER, e)
       Result.failure(e)
     }
   }

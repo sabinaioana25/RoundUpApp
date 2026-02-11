@@ -7,6 +7,15 @@ import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.models.AccountDetails
 import com.example.roundupapp.domain.models.DataSource
 import com.example.roundupapp.domain.repository.RoundUpRepository
+import com.example.roundupapp.utils.Constants.DEFAULT_BALANCE
+import com.example.roundupapp.utils.Constants.ERROR_CACHE_EMPTY_FIRST_RUN
+import com.example.roundupapp.utils.Constants.ERROR_NO_ACCOUNTS_FOUND
+import com.example.roundupapp.utils.Constants.ERROR_UNEXPECTED_ACCOUNT_DETAILS
+import com.example.roundupapp.utils.Constants.LogMessages.CACHE_EMPTY_EXPECTED
+import com.example.roundupapp.utils.Constants.LogMessages.CACHE_READ_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.DEVICE_OFFLINE
+import com.example.roundupapp.utils.Constants.LogMessages.NETWORK_FETCH_FAILED
+import com.example.roundupapp.utils.Constants.OFFLINE_NO_NETWORK
 import javax.inject.Inject
 
 /**
@@ -31,7 +40,7 @@ class AccountDetailsUseCase @Inject constructor(
         loadOffline()
       }
     } catch (e: Exception) {
-      Log.e(TAG, "Unexpected error loading account details", e)
+      Log.e(TAG, ERROR_UNEXPECTED_ACCOUNT_DETAILS, e)
       Result.failure(e)
     }
   }
@@ -44,15 +53,15 @@ class AccountDetailsUseCase @Inject constructor(
       }
       is DataResult.Error -> {
         // Network failed, fallback to cache
-        Log.w(TAG, "Network fetch failed, falling back to cache", networkResult.exception)
+        Log.w(TAG, NETWORK_FETCH_FAILED, networkResult.exception)
         loadFromCacheWithFallback(networkResult.exception)
       }
     }
   }
 
   private suspend fun loadOffline(): Result<AccountDetails> {
-    Log.d(TAG, "Device offline, using cached data")
-    return loadFromCacheWithFallback(OfflineException("No network connectivity"))
+    Log.d(TAG, DEVICE_OFFLINE)
+    return loadFromCacheWithFallback(OfflineException(OFFLINE_NO_NETWORK))
   }
 
   private suspend fun loadFromCacheWithFallback(
@@ -61,17 +70,17 @@ class AccountDetailsUseCase @Inject constructor(
     return when (val cacheResult = fetchFromCache()) {
       is DataResult.Success -> {
         val data = cacheResult.data
-        
+
         // Check if cache has actual data or is empty
         if (data.accounts.isEmpty()) {
-          Log.d(TAG, "Cache is empty (first run)")
+          Log.d(TAG, ERROR_CACHE_EMPTY_FIRST_RUN)
           Result.failure(originalError) // Return original network error
         } else {
           Result.success(data.copy(dataSource = DataSource.CACHE))
         }
       }
       is DataResult.Error -> {
-        Log.e(TAG, "Cache read failed", cacheResult.exception)
+        Log.e(TAG, CACHE_READ_FAILED, cacheResult.exception)
         Result.failure(originalError) // Return original network error
       }
     }
@@ -86,7 +95,7 @@ class AccountDetailsUseCase @Inject constructor(
 
     val accounts = (accountsResult as DataResult.Success).data
     if (accounts.isEmpty()) {
-      return DataResult.Error(Exception("No accounts found"))
+      return DataResult.Error(Exception(ERROR_NO_ACCOUNTS_FOUND))
     }
 
     val account = accounts.first()
@@ -119,7 +128,7 @@ class AccountDetailsUseCase @Inject constructor(
 
     val balance = when (balanceResult) {
       is DataResult.Success -> balanceResult.data.effectiveBalance.gbpUnits
-      is DataResult.Error -> "0.00"
+      is DataResult.Error -> DEFAULT_BALANCE
     }
 
     // Update cache with successful results
@@ -157,13 +166,13 @@ class AccountDetailsUseCase @Inject constructor(
 
     val accounts = (accountsResult as DataResult.Success).data
     if (accounts.isEmpty()) {
-      Log.d(TAG, "Cache is empty (expected on first run)")
+      Log.d(TAG, CACHE_EMPTY_EXPECTED)
       return DataResult.Success(
         AccountDetails(
           accounts = emptyList(),
           transactions = emptyList(),
           savingsGoals = emptyList(),
-          balance = "0.00",
+          balance = DEFAULT_BALANCE,
           dataSource = DataSource.CACHE
         )
       )
@@ -187,8 +196,8 @@ class AccountDetailsUseCase @Inject constructor(
     }
 
     val balance = when (balanceResult) {
-      is DataResult.Success -> balanceResult.data?.effectiveBalance?.gbpUnits ?: "0.00"
-      is DataResult.Error -> "0.00"
+      is DataResult.Success -> balanceResult.data?.effectiveBalance?.gbpUnits ?: DEFAULT_BALANCE
+      is DataResult.Error -> DEFAULT_BALANCE
     }
 
     return DataResult.Success(

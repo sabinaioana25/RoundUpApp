@@ -6,6 +6,11 @@ import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
 import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.domain.validation.Validator
+import com.example.roundupapp.utils.Constants.ERROR_UNEXPECTED_DELETE_GOAL
+import com.example.roundupapp.utils.Constants.LogMessages.DELETE_CACHE_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.DELETE_CACHE_SUCCESS
+import com.example.roundupapp.utils.Constants.LogMessages.DELETE_GOAL_FAILED
+import com.example.roundupapp.utils.Constants.OFFLINE_DELETE_GOAL_ERROR
 import javax.inject.Inject
 
 /**
@@ -27,7 +32,7 @@ class DeleteSavingsGoalUseCase @Inject constructor(
     return try {
       // Check connectivity first
       if (!connectivityChecker.isNetworkAvailable()) {
-        return Result.failure(OfflineException("Cannot delete savings goal while offline"))
+        return Result.failure(OfflineException(OFFLINE_DELETE_GOAL_ERROR))
       }
 
       // Centralized validation
@@ -42,12 +47,12 @@ class DeleteSavingsGoalUseCase @Inject constructor(
           Result.success(Unit)
         }
         is DataResult.Error -> {
-          Log.e(TAG, "Failed to delete savings goal", deleteResult.exception)
+          Log.e(TAG, DELETE_GOAL_FAILED, deleteResult.exception)
           Result.failure(deleteResult.exception)
         }
       }
     } catch (e: Exception) {
-      Log.e(TAG, "Unexpected error deleting savings goal", e)
+      Log.e(TAG, ERROR_UNEXPECTED_DELETE_GOAL, e)
       Result.failure(e)
     }
   }
@@ -55,10 +60,10 @@ class DeleteSavingsGoalUseCase @Inject constructor(
   private suspend fun deleteCacheAsync(savingsGoalUid: String) {
     when (val cacheDeleteResult = repository.cacheDeleteSavingsGoal(savingsGoalUid)) {
       is DataResult.Error -> {
-        Log.w(TAG, "Failed to delete goal from cache (non-fatal)", cacheDeleteResult.exception)
+        Log.w(TAG, DELETE_CACHE_FAILED, cacheDeleteResult.exception)
       }
       is DataResult.Success<*> -> {
-        Log.d(TAG, "Successfully deleted goal from cache")
+        Log.d(TAG, DELETE_CACHE_SUCCESS)
       }
     }
   }

@@ -8,6 +8,15 @@ import com.example.roundupapp.domain.models.CurrencyConverter
 import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.domain.validation.Validator
+import com.example.roundupapp.utils.Constants.ERROR_GOAL_NOT_FOUND
+import com.example.roundupapp.utils.Constants.ERROR_UNEXPECTED_CREATE_GOAL
+import com.example.roundupapp.utils.Constants.LogMessages.CREATE_GOAL_CACHE_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.CREATE_GOAL_CACHE_SUCCESS
+import com.example.roundupapp.utils.Constants.LogMessages.CREATE_GOAL_FETCH_FAILED
+import com.example.roundupapp.utils.Constants.LogMessages.CREATE_GOAL_SERVER_FAILED
+import com.example.roundupapp.utils.Constants.OFFLINE_CREATE_GOAL_ERROR
+import com.example.roundupapp.utils.Constants.VALIDATION_GOAL_NAME
+import com.example.roundupapp.utils.Constants.VALIDATION_TARGET_AMOUNT
 import javax.inject.Inject
 
 /**
@@ -31,12 +40,12 @@ class CreateSavingsGoalUseCase @Inject constructor(
     return try {
       // Check connectivity first
       if (!connectivityChecker.isNetworkAvailable()) {
-        return Result.failure(OfflineException("Cannot create savings goal while offline"))
+        return Result.failure(OfflineException(OFFLINE_CREATE_GOAL_ERROR))
       }
 
       Validator.requireAccountUid(accountUid)
-      Validator.requireNonBlankName(name, "Goal name")
-      Validator.requirePositiveAmount(amountInPounds, "Target amount")
+      Validator.requireNonBlankName(name, VALIDATION_GOAL_NAME)
+      Validator.requirePositiveAmount(amountInPounds, VALIDATION_TARGET_AMOUNT)
 
       val amountMinorUnits = CurrencyConverter.poundsToMinorUnits(amountInPounds)
 
@@ -50,7 +59,7 @@ class CreateSavingsGoalUseCase @Inject constructor(
 
       when (createResult) {
         is DataResult.Error -> {
-          Log.e(TAG, "Failed to create savings goal on server", createResult.exception)
+          Log.e(TAG, CREATE_GOAL_SERVER_FAILED, createResult.exception)
           return Result.failure(createResult.exception)
         }
         is DataResult.Success -> {
@@ -59,7 +68,7 @@ class CreateSavingsGoalUseCase @Inject constructor(
         }
       }
     } catch (e: Exception) {
-      Log.e(TAG, "Unexpected error creating savings goal", e)
+      Log.e(TAG, ERROR_UNEXPECTED_CREATE_GOAL, e)
       Result.failure(e)
     }
   }
@@ -68,14 +77,14 @@ class CreateSavingsGoalUseCase @Inject constructor(
     return when (val goalsResult = repository.getSavingsGoalsWithResult(accountUid)) {
       is DataResult.Success -> {
         val createdGoal = goalsResult.data.firstOrNull()
-          ?: return Result.failure(Exception("Created goal not found in server response"))
+          ?: return Result.failure(Exception(ERROR_GOAL_NOT_FOUND))
 
         cacheGoalAsync(accountUid, createdGoal)
 
         Result.success(createdGoal)
       }
       is DataResult.Error -> {
-        Log.e(TAG, "Failed to fetch created goal details", goalsResult.exception)
+        Log.e(TAG, CREATE_GOAL_FETCH_FAILED, goalsResult.exception)
         Result.failure(goalsResult.exception)
       }
     }
@@ -84,10 +93,10 @@ class CreateSavingsGoalUseCase @Inject constructor(
   private suspend fun cacheGoalAsync(accountUid: String, goal: DomainSavingsGoal) {
     when (val cacheResult = repository.cacheSavingsGoal(accountUid, goal)) {
       is DataResult.Error -> {
-        Log.w(TAG, "Failed to cache created goal", cacheResult.exception)
+        Log.w(TAG, CREATE_GOAL_CACHE_FAILED, cacheResult.exception)
       }
       is DataResult.Success<*> -> {
-        Log.d(TAG, "Successfully cached created goal")
+        Log.d(TAG, CREATE_GOAL_CACHE_SUCCESS)
       }
     }
   }

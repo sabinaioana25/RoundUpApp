@@ -54,6 +54,89 @@ object Constants {
   const val TRANSACTIONS_DATE_FORMAT_YESTERDAY = "Yesterday"
   const val TRANSACTION_DATE_FORMAT_DD_MM_YYYY = "MMM dd, yyyy"
 
+  // Offline handling
+  const val HOME_SCREEN_OFFLINE_ERROR = "No internet connection. Showing cached data."
+  const val HOME_SCREEN_OFFLINE_INDICATOR = "Offline mode"
+
+  // Offline error messages
+  const val OFFLINE_DELETE_GOAL_ERROR = "Cannot delete savings goal while offline"
+  const val OFFLINE_CREATE_GOAL_ERROR = "Cannot create savings goal while offline"
+  const val OFFLINE_TRANSFER_ERROR = "Cannot transfer funds while offline"
+  const val OFFLINE_NO_NETWORK = "No network connectivity"
+
+  // Validation field names
+  const val VALIDATION_GOAL_NAME = "Goal name"
+  const val VALIDATION_TARGET_AMOUNT = "Target amount"
+  const val VALIDATION_TRANSFER_AMOUNT = "Transfer amount"
+
+  // Error messages
+  const val ERROR_GOAL_NOT_FOUND = "Created goal not found in server response"
+  const val ERROR_NO_ACCOUNTS_FOUND = "No accounts found"
+  const val ERROR_CACHE_EMPTY_FIRST_RUN = "Cache is empty (first run)"
+  const val ERROR_UNEXPECTED_ACCOUNT_DETAILS = "Unexpected error loading account details"
+  const val ERROR_UNEXPECTED_TRANSFER = "Unexpected error during transfer"
+  const val ERROR_UNEXPECTED_CREATE_GOAL = "Created goal not found in server response"
+  const val ERROR_UNEXPECTED_DELETE_GOAL = "Unexpected error deleting savings goal"
+
+  // Default values
+  const val DEFAULT_BALANCE = "0.00"
+
+  // Log messages
+  object LogMessages {
+    // Create Goal
+    const val CREATE_GOAL_SERVER_FAILED = "Failed to create savings goal on server"
+    const val CREATE_GOAL_FETCH_FAILED = "Failed to fetch created goal details"
+    const val CREATE_GOAL_CACHE_FAILED = "Failed to cache created goal"
+    const val CREATE_GOAL_CACHE_SUCCESS = "Successfully cached created goal"
+    const val CREATE_GOAL_SUCCESS = "Goal created successfully"
+    const val CREATE_GOAL_FAILED = "Failed to create goal"
+
+    // Delete Goal
+    const val DELETE_GOAL_FAILED = "Failed to delete savings goal"
+    const val DELETE_CACHE_FAILED = "Failed to delete goal from cache (non-fatal)"
+    const val DELETE_CACHE_SUCCESS = "Successfully deleted goal from cache"
+    const val DELETE_GOAL_SUCCESS = "Goal deleted successfully"
+
+    // Transfer
+    const val TRANSFER_INITIATING = "Initiating transfer: %d pence to goal %s"
+    const val TRANSFER_SUCCESS = "Transfer successful: %s"
+    const val TRANSFER_FAILED = "Transfer failed: %s"
+    const val TRANSFER_COMPLETED_SUCCESS = "Transfer completed successfully"
+
+    // Account Details
+    const val NETWORK_FETCH_FAILED = "Network fetch failed, falling back to cache"
+    const val CACHE_READ_FAILED = "Cache read failed"
+    const val DEVICE_OFFLINE = "Device offline, using cached data"
+    const val CACHE_EMPTY_EXPECTED = "Cache is empty (expected on first run)"
+
+    // ViewModel
+    const val ALREADY_LOADING = "Already loading, skipping duplicate request"
+    const val OPERATION_IN_PROGRESS_CREATE = "Operation in progress, skipping create goal"
+    const val OPERATION_IN_PROGRESS_DELETE = "Operation in progress, skipping delete goal"
+    const val OPERATION_IN_PROGRESS_TRANSFER = "Operation in progress, skipping transfer"
+
+    // Repository - Network Errors
+    const val ERROR_FETCHING_ACCOUNTS = "Error fetching accounts"
+    const val ERROR_FETCHING_BALANCE = "Error fetching balance"
+    const val ERROR_FETCHING_TRANSACTIONS = "Error fetching transactions"
+    const val ERROR_FETCHING_SAVINGS_GOALS = "Error fetching savings goals"
+    const val ERROR_CREATING_SAVINGS_GOAL = "Error creating savings goal"
+    const val ERROR_TRANSFERRING_TO_SAVINGS_GOAL = "Error transferring to savings goal"
+    const val ERROR_DELETING_SAVINGS_GOAL = "Error deleting savings goal"
+
+    // Repository - Database Errors
+    const val ERROR_READING_CACHED_ACCOUNTS = "Error reading cached accounts"
+    const val ERROR_READING_CACHED_TRANSACTIONS = "Error reading cached transactions"
+    const val ERROR_READING_CACHED_SAVINGS_GOALS = "Error reading cached savings goals"
+    const val ERROR_READING_CACHED_BALANCE = "Error reading cached balance"
+    const val ERROR_CACHING_ACCOUNTS = "Error caching accounts"
+    const val ERROR_CACHING_BALANCE = "Error caching balance"
+    const val ERROR_CACHING_TRANSACTIONS = "Error caching transactions"
+    const val ERROR_CACHING_SAVINGS_GOALS = "Error caching savings goals"
+    const val ERROR_CACHING_SINGLE_SAVINGS_GOAL = "Error caching single savings goal"
+    const val ERROR_DELETING_CACHED_SAVINGS_GOAL = "Error deleting cached savings goal"
+  }
+
   // Preview Data
   object PreviewData {
     const val TRANSACTION_1_AMOUNT = "£2.36"
@@ -81,8 +164,4 @@ object Constants {
     const val TRANSACTION_5_TIME = "2023-06-01"
     const val TRANSACTION_5_NAME = "John Bishop"
   }
-
-  // Offline handling
-  const val HOME_SCREEN_OFFLINE_ERROR = "No internet connection. Showing cached data."
-  const val HOME_SCREEN_OFFLINE_INDICATOR = "Offline mode"
 }
