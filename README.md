@@ -28,6 +28,9 @@
 ### Run the app
 To use the app simply clone the repository and run the app on your emulator or connected device.
 
+<img width="300" alt="App Screenshot" src="https://github.com/user-attachments/assets/e2e03491-fb9d-4a7f-8a7b-daa7cc1f05dd" />
+
+
 ## Features
 This is a single activity single screen application, with the showing the following:
 *   **View Account Balance:** See your current account balance at a glance. This will update once a transaction (round up) is made
