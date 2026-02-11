@@ -6,13 +6,10 @@ object Constants {
   const val HOME_SCREEN_ERROR_EMPTY_STATE = "No data to display"
   const val HOME_SCREEN_LOADING_MESSAGE = "Loading your account..."
   const val HOME_SCREEN_ERROR_LOADING_INITIAL_DATA = "Error loading data. Please try again"
-  const val HOME_SCREEN_NETWORK_ERROR_LOADING_INITIAL_DATA =
-    "You appear to be offline. Please check your connection and try again"
   const val HOME_SCREEN_PULL_TO_REFRESH = "Pull down to refresh"
   const val HOME_SCREEN_BUTTON_RETRY = "Retry"
   const val HOME_SCREEN_ROUND_UP_BUTTON = "Round Up"
-  const val HOME_SCREEN_REFRESH_ICON = "Refresh"
-  const val HOME_SCREEN_BALANCE = "Balance"
+  const val HOME_SCREEN_BALANCE = "Current Balance"
   const val HOME_SCREEN_SAMPLE_BALANCE = "£1000.00"
   const val HOME_SCREEN_NO_ROUND_UP_AVAILABLE = "No round up available to transfer"
 
@@ -24,17 +21,25 @@ object Constants {
   const val GOALS_CREATING_FAILURE = "Failed to create goal"
   const val GOALS_NO_SAVINGS_GOALS_TO_DELETE = "No savings goals to delete"
   const val GOALS_FAILURE_DELETING = "Failed to delete goal"
-  const val GOALS_CARD_COMPOSABLE_TEXT_TRANSACTIONS = "Transactions"
+  const val GOALS_CARD_COMPOSABLE_TEXT_TRANSACTIONS = "Recent Transactions"
   const val GOALS_CREATE_GOAL_BUTTON = "Create Goal"
+  const val GOALS_CREATE_FIRST_GOAL_BUTTON = "Create Your First Goal"
+  const val GOALS_NO_GOALS_YET = "No Savings Goals Yet"
+  const val GOALS_CREATE_TO_START = "Create a goal to start saving"
+  const val GOALS_TARGET = "Target"
   const val GOALS_TOTAL_SAVED = "Total saved: "
-  const val GOALS_TARGET = "Target: "
-  const val GOALS_ROUND_UP_AVAILABLE = "Round-up available"
+  const val GOALS_TARGET_PREFIX = "Target: "
+  const val GOALS_PROGRESS_TEXT = "of goal reached"
+  const val GOALS_ROUND_UP_AVAILABLE = "Available Round-up"
   const val GOALS_TRANSFERRING_BUTTON = "Transferring"
-  const val GOALS_TRANSFER_BUTTON = "Transfer"
+  const val GOALS_TRANSFER_BUTTON = "Transfer Now"
   const val GOALS_DELETING_BUTTON = "Deleting"
   const val GOALS_DELETE_GOAL_BUTTON = "Delete Goal"
   const val GOALS_WAIT_FOR_TRANSFER = "Please wait for current operation to complete"
-
+  const val GOALS_OFFLINE_CREATE_DISABLED = "Connect to network to create goals"
+  const val GOALS_OFFLINE_DELETE_DISABLED = "Connect to network to delete goal"
+  const val GOALS_OFFLINE_LABEL = "Offline"
+  const val GOALS_ICON_EMOJI = "🎯"
 
   // Alert dialog
   const val ALERT_DIALOG_COMPOSABLE_DIALOG_TITLE = "Create a new Savings Goal"
@@ -54,7 +59,6 @@ object Constants {
   const val TRANSACTIONS_DATE_FORMAT_TODAY = "Today"
   const val TRANSACTIONS_DATE_FORMAT_YESTERDAY = "Yesterday"
   const val TRANSACTION_DATE_FORMAT_DD_MM_YYYY = "MMM dd, yyyy"
-
 
   // Preview Data
   object PreviewData {

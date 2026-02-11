@@ -1,5 +1,6 @@
 package com.example.roundupapp.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,8 +9,10 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,22 +32,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import com.example.roundupapp.domain.models.DataSource
+import com.example.roundupapp.domain.models.DomainAmount
+import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.ui.components.Goals
 import com.example.roundupapp.ui.components.Transactions
-import com.example.roundupapp.ui.components.aListOfDomainSavingGoals
 import com.example.roundupapp.ui.components.aListOfTransactions
 import com.example.roundupapp.ui.theme.Dimens
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_BALANCE
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_ERROR_EMPTY_STATE
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_LOADING_MESSAGE
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_OFFLINE_INDICATOR
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_PULL_TO_REFRESH
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_ROUND_UP_BUTTON
-import com.example.roundupapp.utils.Constants.HOME_SCREEN_SAMPLE_BALANCE
+import com.example.roundupapp.utils.Constants
 
 @Composable
 fun HomeScreenHoist(
@@ -81,26 +80,27 @@ fun HomeScreen(
     modifier = Modifier.fillMaxSize(),
     contentWindowInsets = WindowInsets(0),
     topBar = {
-      TopAppBar(
-        title = { 
-          Row(
-            horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Text(HOME_SCREEN_ROUND_UP_BUTTON)
-            
-            // Offline indicator
-            if (state.isOffline) {
+      if (state.isOffline) {
+        TopAppBar(
+          title = { 
+            Row(
+              horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
               Icon(
                 imageVector = Icons.Default.CloudOff,
-                contentDescription = HOME_SCREEN_OFFLINE_INDICATOR,
+                contentDescription = Constants.HOME_SCREEN_OFFLINE_INDICATOR,
                 tint = MaterialTheme.colorScheme.error
               )
+              Text(
+                text = Constants.HOME_SCREEN_OFFLINE_INDICATOR,
+                style = MaterialTheme.typography.labelMedium
+              )
             }
-          }
-        },
-        windowInsets = WindowInsets(0)
-      )
+          },
+          windowInsets = WindowInsets(0)
+        )
+      }
     },
     snackbarHost = { SnackbarHost(snackbarHostState) },
   ) { paddingValues ->
@@ -119,7 +119,7 @@ fun HomeScreen(
           ) {
             CircularProgressIndicator()
             Text(
-              text = HOME_SCREEN_LOADING_MESSAGE,
+              text = Constants.HOME_SCREEN_LOADING_MESSAGE,
               style = MaterialTheme.typography.bodyMedium
             )
           }
@@ -139,14 +139,21 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)
           ) {
             Text(
-              text = HOME_SCREEN_ERROR_EMPTY_STATE,
+              text = "⚠️",
+              style = MaterialTheme.typography.displayMedium
+            )
+            Text(
+              text = Constants.HOME_SCREEN_ERROR_EMPTY_STATE,
               style = MaterialTheme.typography.titleMedium
             )
             Text(
-              text = HOME_SCREEN_PULL_TO_REFRESH,
+              text = Constants.HOME_SCREEN_PULL_TO_REFRESH,
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Button(onClick = { onIntent(Intent.Refresh) }) {
+              Text(Constants.HOME_SCREEN_BUTTON_RETRY)
+            }
           }
         }
       }
@@ -177,28 +184,35 @@ private fun HomeScreenContent(
   Column(
     modifier = Modifier
       .fillMaxSize()
+      .background(MaterialTheme.colorScheme.background)
       .padding(Dimens.Spacing.default),
     verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)
   ) {
     // Balance Card
     Card(
       modifier = Modifier.fillMaxWidth(),
-      elevation = CardDefaults.cardElevation(defaultElevation = Dimens.Elevation.default)
+      colors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.primaryContainer
+      ),
+      elevation = CardDefaults.cardElevation(defaultElevation = Dimens.Elevation.default),
+      shape = RoundedCornerShape(Dimens.Corner.card)
     ) {
       Column(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(Dimens.Spacing.default),
+          .padding(Dimens.Spacing.large),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
         Text(
-          text = HOME_SCREEN_BALANCE,
-          style = MaterialTheme.typography.labelMedium
+          text = Constants.HOME_SCREEN_BALANCE,
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
         )
         Text(
           text = state.balance,
-          style = MaterialTheme.typography.headlineLarge,
-          fontWeight = FontWeight.Bold
+          style = MaterialTheme.typography.displaySmall,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onPrimaryContainer
         )
       }
     }
@@ -211,12 +225,21 @@ private fun HomeScreenContent(
     )
 
     // Transactions Section
-    Transactions(
+    Column(
       modifier = Modifier
         .weight(Dimens.Layout.defaultWeight)
-        .fillMaxWidth(),
-      transactions = state.transactions
-    )
+        .fillMaxWidth()
+    ) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .clip(RoundedCornerShape(Dimens.Corner.card))
+      ) {
+        Transactions(
+          transactions = state.transactions
+        )
+      }
+    }
   }
 }
 
@@ -235,14 +258,35 @@ fun HomeScreenLoadingPreview() {
 
 @PreviewLightDark
 @Composable
+fun HomeScreenErrorPreview() {
+  RoundUpAppTheme {
+    HomeScreen(
+      state = ScreenState(
+        loadingState = LoadingState.Idle
+      ),
+      onIntent = {}
+    )
+  }
+}
+
+@PreviewLightDark
+@Composable
 fun HomeScreenWithDataPreview() {
   RoundUpAppTheme {
     HomeScreen(
       state = ScreenState(
         loadingState = LoadingState.Idle,
         transactions = aListOfTransactions,
-        balance = HOME_SCREEN_SAMPLE_BALANCE,
-        savingsGoals = aListOfDomainSavingGoals,
+        balance = Constants.HOME_SCREEN_SAMPLE_BALANCE,
+        savingsGoals = listOf(
+          DomainSavingsGoal(
+            name = Constants.ALERT_SAMPLE_GOAL_NAME,
+            targetAmount = DomainAmount(Constants.REPO_CURRENCY_GBP, 50000, "£500.00"),
+            savingsGoalUid = "",
+            totalSaved = DomainAmount(Constants.REPO_CURRENCY_GBP, 15000, "£150.00"),
+            state = ""
+          )
+        ),
         roundedAmount = 44552,
         dataSource = DataSource.NETWORK
       ),
@@ -259,27 +303,18 @@ fun HomeScreenOfflinePreview() {
       state = ScreenState(
         loadingState = LoadingState.Idle,
         transactions = aListOfTransactions,
-        balance = HOME_SCREEN_SAMPLE_BALANCE,
-        savingsGoals = aListOfDomainSavingGoals,
+        balance = Constants.HOME_SCREEN_SAMPLE_BALANCE,
+        savingsGoals = listOf(
+          DomainSavingsGoal(
+            name = Constants.ALERT_SAMPLE_GOAL_NAME,
+            targetAmount = DomainAmount(Constants.REPO_CURRENCY_GBP, 50000, "£500.00"),
+            savingsGoalUid = "",
+            totalSaved = DomainAmount(Constants.REPO_CURRENCY_GBP, 15000, "£150.00"),
+            state = ""
+          )
+        ),
         roundedAmount = 44552,
         dataSource = DataSource.CACHE
-      ),
-      onIntent = {}
-    )
-  }
-}
-
-@PreviewLightDark
-@Composable
-fun HomeScreenRefreshingPreview() {
-  RoundUpAppTheme {
-    HomeScreen(
-      state = ScreenState(
-        loadingState = LoadingState.Refreshing,
-        transactions = aListOfTransactions,
-        balance = HOME_SCREEN_SAMPLE_BALANCE,
-        savingsGoals = aListOfDomainSavingGoals,
-        roundedAmount = 44552
       ),
       onIntent = {}
     )

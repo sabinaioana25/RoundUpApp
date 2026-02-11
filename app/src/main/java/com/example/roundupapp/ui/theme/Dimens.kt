@@ -8,9 +8,15 @@ object Dimens {
     val size = 16.sp
     val lineHeight = 24.sp
     val letterSpacing = 0.5.sp
+    val emojiSize = 24.sp
+  }
+
+  object Image {
+    val thumbnailSmall = 40.dp
   }
 
   object Spacing {
+    val large = 24.dp
     val default = 16.dp
     val medium = 12.dp
     val small = 8.dp
@@ -22,10 +28,23 @@ object Dimens {
   }
 
   object Elevation {
-    val default = 4.dp
+    val default = 2.dp
+    val card = 4.dp
   }
 
   object Layout {
     const val defaultWeight = 1f
+  }
+  
+  object Size {
+    val iconBadge = 48.dp
+    val progressBar = 8.dp
+    val buttonIcon = 18.dp
+  }
+  
+  object Corner {
+    val card = 16.dp
+    val button = 12.dp
+    val progressBar = 4.dp
   }
 }

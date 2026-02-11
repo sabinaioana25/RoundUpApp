@@ -11,20 +11,47 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val LightColorScheme = lightColorScheme(
-  primary = Purple40,
-  secondary = PurpleGrey40,
-  tertiary = Pink40,
-  surfaceVariant = LightSurfaceVariant,
+private val DarkColorScheme = darkColorScheme(
+  primary = PrimaryDark,
+  onPrimary = Color(0xFF002366),
+  primaryContainer = PrimaryContainerDark,
+  onPrimaryContainer = Color(0xFFDCE7FF),
+  
+  secondary = SecondaryDark,
+  onSecondary = Color(0xFF003544),
+  secondaryContainer = SecondaryContainerDark,
+  onSecondaryContainer = Color(0xFFCFF9FE),
+  
+  background = SurfaceDark,
+  onBackground = Color(0xFFE8E8E8),
+  
+  surface = SurfaceDark,
+  onSurface = Color(0xFFE8E8E8),
+  surfaceVariant = SurfaceVariantDark,
+  onSurfaceVariant = Color(0xFFCACACA)
 )
 
-private val DarkColorScheme = darkColorScheme(
-  primary = Purple80,
-  secondary = PurpleGrey80,
-  tertiary = Pink80,
-  surfaceVariant = DarkSurfaceVariant,
+private val LightColorScheme = lightColorScheme(
+  primary = Primary,
+  onPrimary = Color.White,
+  primaryContainer = PrimaryContainer,
+  onPrimaryContainer = Color(0xFF001B3F),
+  
+  secondary = Secondary,
+  onSecondary = Color.White,
+  secondaryContainer = SecondaryContainer,
+  onSecondaryContainer = Color(0xFF001F26),
+  
+  background = Color(0xFFFFFFFF),
+  onBackground = Color(0xFF1A1A1A),
+  
+  surface = SurfaceLight,
+  onSurface = Color(0xFF1A1A1A),
+  surfaceVariant = SurfaceVariantLight,
+  onSurfaceVariant = Color(0xFF45464F)
 )
 
 @Composable
@@ -42,10 +69,10 @@ fun RoundUpAppTheme(
     darkTheme -> DarkColorScheme
     else -> LightColorScheme
   }
-
+  
   Surface(
     modifier = Modifier.fillMaxSize(),
-    color = MaterialTheme.colorScheme.background
+    color = colorScheme.background
   ) {
     MaterialTheme(
       colorScheme = colorScheme,
