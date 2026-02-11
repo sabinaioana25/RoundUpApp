@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.roundupapp.domain.models.CurrencyConverter
 import com.example.roundupapp.ui.theme.Dimens
 import com.example.roundupapp.ui.theme.RoundUpAppTheme
 import com.example.roundupapp.utils.Constants.ALERT_DIALOG_COMPOSABLE_BUTTON_CANCEL
@@ -27,18 +29,40 @@ import com.example.roundupapp.utils.Constants.ALERT_DIALOG_CURRENCY_PREFIX
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_NAME_GOAL
 import com.example.roundupapp.utils.Constants.GOALS_CARD_COMPOSABLE_TARGET
 
+private val AMOUNT_REGEX = Regex("^\\d*\\.?\\d{0,2}$")
+
 /**
  * Dialog for creating a new savings goal
  * Collects goal name and target amount with input validation
  */
 @Composable
 fun CreateGoalDialog(
-  onConfirm: (name: String, amountMinorUnits: Int) -> Unit,
+  onConfirm: (name: String, amountInPounds: Int) -> Unit,
   onDismiss: () -> Unit
 ) {
   var goalName by remember { mutableStateOf("") }
   var targetAmount by remember { mutableStateOf("") }
+  var nameError by remember { mutableStateOf<String?>(null) }
+  var amountError by remember { mutableStateOf<String?>(null) }
   val focusManager = LocalFocusManager.current
+
+  fun validateAmount(amount: String): Pair<String?, Int?> {
+    if (amount.isBlank()) return "Target amount cannot be empty" to null
+    val minorUnits = CurrencyConverter.parseToMinorUnits(amount)
+      ?: return "Please enter a valid amount" to null
+    if (minorUnits <= 0) return "Amount must be greater than zero" to null
+    return null to minorUnits / 100
+  }
+
+  fun validateAndSubmit() {
+    nameError = if (goalName.isBlank()) "Goal name cannot be empty" else null
+    val (error, amountInPounds) = validateAmount(targetAmount)
+    amountError = error
+
+    if (nameError == null && amountInPounds != null) {
+      onConfirm(goalName.trim(), amountInPounds)
+    }
+  }
 
   AlertDialog(
     onDismissRequest = onDismiss,
@@ -47,18 +71,28 @@ fun CreateGoalDialog(
       Column(verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.default)) {
         TextField(
           value = goalName,
-          onValueChange = { goalName = it },
+          onValueChange = {
+            goalName = it
+            nameError = null
+          },
           label = { Text(GOALS_CARD_COMPOSABLE_NAME_GOAL) },
           keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-          keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
-          singleLine = true
+          keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Next) }
+          ),
+          singleLine = true,
+          isError = nameError != null,
+          supportingText = nameError?.let { message ->
+            { Text(text = message, color = MaterialTheme.colorScheme.error) }
+          }
         )
+
         TextField(
           value = targetAmount,
           onValueChange = {
-            // Allow only valid decimal numbers with up to 2 decimal places
-            if (it.matches(Regex("^\\d*\\.?\\d{0,2}$"))) {
+            if (it.isEmpty() || it.matches(AMOUNT_REGEX)) {
               targetAmount = it
+              amountError = null
             }
           },
           label = { Text(GOALS_CARD_COMPOSABLE_TARGET) },
@@ -67,22 +101,22 @@ fun CreateGoalDialog(
             keyboardType = KeyboardType.Decimal,
             imeAction = ImeAction.Done
           ),
-          keyboardActions = KeyboardActions(onDone = {
-            focusManager.clearFocus()
-          }),
-          singleLine = true
+          keyboardActions = KeyboardActions(
+            onDone = {
+              focusManager.clearFocus()
+              validateAndSubmit()
+            }
+          ),
+          singleLine = true,
+          isError = amountError != null,
+          supportingText = amountError?.let { message ->
+            { Text(text = message, color = MaterialTheme.colorScheme.error) }
+          }
         )
       }
     },
     confirmButton = {
-      Button(
-        onClick = {
-          if (goalName.isNotBlank() && targetAmount.isNotBlank()) {
-            val amountInMinorUnits = convertToMinorUnits(targetAmount)
-            onConfirm(goalName, amountInMinorUnits)
-          }
-        })
-      {
+      Button(onClick = { validateAndSubmit() }) {
         Text(ALERT_DIALOG_COMPOSABLE_BUTTON_CREATE)
       }
     },
@@ -92,17 +126,6 @@ fun CreateGoalDialog(
       }
     }
   )
-}
-
-private fun convertToMinorUnits(decimalString: String): Int {
-  if (decimalString.isBlank()) return 0
-  
-  return try {
-    val pounds = decimalString.toDouble()
-    (pounds * 100).toInt()
-  } catch (e: NumberFormatException) {
-    0
-  }
 }
 
 @Preview

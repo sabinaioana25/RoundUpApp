@@ -17,41 +17,62 @@ class AccountDetailsUseCase @Inject constructor(
   private val repository: RoundUpRepository,
   private val connectivityChecker: NetworkConnectivityChecker
 ) {
+  companion object {
+    private val TAG = AccountDetailsUseCase::class.java.simpleName
+  }
+
   suspend operator fun invoke(): Result<AccountDetails> {
     return try {
       val isOnline = connectivityChecker.isNetworkAvailable()
-      
+
       if (isOnline) {
-        // Try network first when online
-        when (val networkResult = fetchFromNetwork()) {
-          is DataResult.Success -> {
-            Result.success(networkResult.data.copy(dataSource = DataSource.NETWORK))
-          }
-          is DataResult.Error -> {
-            // Network failed, fallback to cache
-            Log.w(TAG, "Network fetch failed, falling back to cache", networkResult.exception)
-            fetchFromCacheWithFallback(networkResult.exception)
-          }
-        }
+        loadWithNetworkFirst()
       } else {
-        // Offline - use cache directly
-        Log.d(TAG, "Device offline, using cached data")
-        fetchFromCacheWithFallback(OfflineException("No network connectivity"))
+        loadOffline()
       }
     } catch (e: Exception) {
-      Log.e(TAG, "Unexpected error in AccountDetailsUseCase", e)
+      Log.e(TAG, "Unexpected error loading account details", e)
       Result.failure(e)
     }
   }
 
-  private suspend fun fetchFromCacheWithFallback(networkError: Exception): Result<AccountDetails> {
-    return when (val cacheResult = fetchFromCache()) {
+  private suspend fun loadWithNetworkFirst(): Result<AccountDetails> {
+    // Try network first
+    return when (val networkResult = fetchFromNetwork()) {
       is DataResult.Success -> {
-        Result.success(cacheResult.data.copy(dataSource = DataSource.CACHE))
+        Result.success(networkResult.data.copy(dataSource = DataSource.NETWORK))
       }
       is DataResult.Error -> {
-        // No cache available, return original network error
-        Result.failure(networkError)
+        // Network failed, fallback to cache
+        Log.w(TAG, "Network fetch failed, falling back to cache", networkResult.exception)
+        loadFromCacheWithFallback(networkResult.exception)
+      }
+    }
+  }
+
+  private suspend fun loadOffline(): Result<AccountDetails> {
+    Log.d(TAG, "Device offline, using cached data")
+    return loadFromCacheWithFallback(OfflineException("No network connectivity"))
+  }
+
+  private suspend fun loadFromCacheWithFallback(
+    originalError: Exception
+  ): Result<AccountDetails> {
+    return when (val cacheResult = fetchFromCache()) {
+      is DataResult.Success -> {
+        val data = cacheResult.data
+        
+        // Check if cache has actual data or is empty
+        if (data.accounts.isEmpty()) {
+          Log.d(TAG, "Cache is empty (first run)")
+          Result.failure(originalError) // Return original network error
+        } else {
+          Result.success(data.copy(dataSource = DataSource.CACHE))
+        }
+      }
+      is DataResult.Error -> {
+        Log.e(TAG, "Cache read failed", cacheResult.exception)
+        Result.failure(originalError) // Return original network error
       }
     }
   }
@@ -72,7 +93,7 @@ class AccountDetailsUseCase @Inject constructor(
     val accountUid = account.accountUid
     val categoryUid = account.defaultCategory
 
-    // Fetch all data (could use async/await for true parallelism)
+    // Fetch all other data
     val transactionsResult = repository.getTransactionsWithResult(accountUid, categoryUid)
     val savingsGoalsResult = repository.getSavingsGoalsWithResult(accountUid)
     val balanceResult = repository.getBalanceWithResult(accountUid)
@@ -103,15 +124,15 @@ class AccountDetailsUseCase @Inject constructor(
 
     // Update cache with successful results
     repository.cacheAccounts(accounts)
-    
+
     if (transactionsResult is DataResult.Success) {
       repository.cacheTransactions(accountUid, transactions)
     }
-    
+
     if (savingsGoalsResult is DataResult.Success) {
       repository.cacheSavingsGoals(accountUid, savingsGoals)
     }
-    
+
     if (balanceResult is DataResult.Success) {
       repository.cacheBalance(accountUid, balanceResult.data)
     }
@@ -129,14 +150,23 @@ class AccountDetailsUseCase @Inject constructor(
 
   private suspend fun fetchFromCache(): DataResult<AccountDetails> {
     val accountsResult = repository.getCachedAccounts()
-    
+
     if (accountsResult is DataResult.Error) {
       return DataResult.Error(accountsResult.exception)
     }
 
     val accounts = (accountsResult as DataResult.Success).data
     if (accounts.isEmpty()) {
-      return DataResult.Error(Exception("No cached accounts found"))
+      Log.d(TAG, "Cache is empty (expected on first run)")
+      return DataResult.Success(
+        AccountDetails(
+          accounts = emptyList(),
+          transactions = emptyList(),
+          savingsGoals = emptyList(),
+          balance = "0.00",
+          dataSource = DataSource.CACHE
+        )
+      )
     }
 
     val account = accounts.first()
@@ -170,9 +200,5 @@ class AccountDetailsUseCase @Inject constructor(
         dataSource = DataSource.CACHE
       )
     )
-  }
-
-  companion object {
-    private val TAG = AccountDetailsUseCase::class.java.simpleName
   }
 }

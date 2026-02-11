@@ -48,6 +48,7 @@ object Constants {
   // RoundUpRepositoryImpl
   const val REPO_CURRENCY_GBP = "GBP"
   const val REPO_ROUND_UP_TRANSFER_REFERENCE = "Round-up transfer"
+  const val REPO_ACCOUNT_UID_MISSING = "Account UID missing"
 
   // Transactions
   const val TRANSACTIONS_DATE_FORMAT_TODAY = "Today"

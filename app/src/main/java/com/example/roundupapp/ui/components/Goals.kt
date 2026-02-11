@@ -59,7 +59,7 @@ fun Goals(
   if (state.savingsGoals.isEmpty()) {
     Button(
       onClick = { showCreateGoalDialog = true },
-      enabled = !isInProgress,
+      enabled = !isInProgress && !state.isOffline,
       modifier = modifier
     ) {
       val isCreating = isInProgress &&
@@ -75,6 +75,15 @@ fun Goals(
       } else {
         Text(GOALS_CREATE_GOAL_BUTTON)
       }
+    }
+    
+    if (state.isOffline && !isInProgress) {
+      Text(
+        text = "Connect to network to create goals",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = Dimens.Spacing.small)
+      )
     }
   }
 
@@ -150,28 +159,43 @@ private fun CreatedGoal(
                 fontWeight = FontWeight.Bold
               )
             }
-            val isTransferring = isInProgress &&
-              state.loadingState is LoadingState.InProgress &&
-              state.loadingState.operation == LoadingState.Operation.TRANSFERRING
-
-            Button(
-              onClick = { onIntent(Intent.TransferToSavingsGoal) },
-              enabled = !isInProgress && state.roundedAmount > 0
+            
+            Column(
+              horizontalAlignment = Alignment.End,
+              verticalArrangement = Arrangement.spacedBy(Dimens.Spacing.extraSmall)
             ) {
-              if (isTransferring) {
-                Row(
-                  horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
-                  verticalAlignment = Alignment.CenterVertically
-                ) {
-                  CircularProgressIndicator(
-                    modifier = Modifier.size(Dimens.Spacing.default),
-                    strokeWidth = Dimens.Stroke.default,
-                    color = MaterialTheme.colorScheme.onPrimary
-                  )
-                  Text(GOALS_TRANSFERRING_BUTTON)
+              val isTransferring = isInProgress &&
+                state.loadingState is LoadingState.InProgress &&
+                state.loadingState.operation == LoadingState.Operation.TRANSFERRING
+
+              Button(
+                onClick = { onIntent(Intent.TransferToSavingsGoal) },
+                enabled = !isInProgress && !state.isOffline && state.roundedAmount > 0
+              ) {
+                if (isTransferring) {
+                  Row(
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.Spacing.small),
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    CircularProgressIndicator(
+                      modifier = Modifier.size(Dimens.Spacing.default),
+                      strokeWidth = Dimens.Stroke.default,
+                      color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Text(GOALS_TRANSFERRING_BUTTON)
+                  }
+                } else {
+                  Text(GOALS_TRANSFER_BUTTON)
                 }
-              } else {
-                Text(GOALS_TRANSFER_BUTTON)
+              }
+              
+              // Show helper text when disabled due to offline
+              if (state.isOffline && !isInProgress && state.roundedAmount > 0) {
+                Text(
+                  text = "Offline",
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.error
+                )
               }
             }
           }
@@ -183,7 +207,7 @@ private fun CreatedGoal(
 
         OutlinedButton(
           onClick = { onIntent(Intent.DeleteSavingsGoal) },
-          enabled = !isInProgress,
+          enabled = !isInProgress && !state.isOffline,
           modifier = Modifier.fillMaxWidth()
         ) {
           if (isDeleting) {
@@ -201,6 +225,17 @@ private fun CreatedGoal(
             Text(GOALS_DELETE_GOAL_BUTTON)
           }
         }
+        
+        // Show helper text when disabled due to offline
+        if (state.isOffline && !isInProgress) {
+          Text(
+            text = "Connect to network to delete goal",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+          )
+        }
       }
     }
   }
@@ -217,6 +252,22 @@ fun GoalsEmptyPreview() {
       savingsGoals = emptyList(),
       roundedAmount = 0
     ),
+    onIntent = {}
+  )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GoalsEmptyInProgressPreview() {
+  Goals(
+    state = ScreenState(
+      loadingState = LoadingState.InitialLoading,
+      transactions = emptyList(),
+      balance = HOME_SCREEN_SAMPLE_BALANCE,
+      savingsGoals = emptyList(),
+      roundedAmount = 0
+    ),
+    isInProgress = false,
     onIntent = {}
   )
 }

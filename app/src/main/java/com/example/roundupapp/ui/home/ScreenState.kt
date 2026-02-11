@@ -23,7 +23,7 @@ sealed interface LoadingState {
  * Tracks data source to show offline indicators
  */
 data class ScreenState(
-  val loadingState: LoadingState = LoadingState.InitialLoading,
+  val loadingState: LoadingState = LoadingState.Idle,
   val accounts: List<DomainAccount> = emptyList(),
   val balance: String = "",
   val transactions: List<DomainTransaction> = emptyList(),
