@@ -3,7 +3,6 @@ package com.example.roundupapp.domain.usecase
 import com.example.roundupapp.data.DataResult
 import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
 import com.example.roundupapp.domain.connectivity.OfflineException
-import com.example.roundupapp.domain.models.AccountDetails
 import com.example.roundupapp.domain.models.DataSource
 import com.example.roundupapp.domain.models.DomainAccount
 import com.example.roundupapp.domain.models.DomainAmount
@@ -21,7 +20,6 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test

@@ -20,7 +20,7 @@
 *   An Android device or emulator running API level 24 or higher
 
 >[!Warning]
->You will need to create and add a `secrets.properties` file containing `API_KEY="Bearer <your key>"` at the root folder. You can generate a key from the your Starling Developer account after you [Create a Sandbox customer](https://developer.starlingbank.com/sandbox/select).
+>You will need to create and add a `secrets.properties` file containing `API_KEY="Bearer <your key>"` at the root folder. You can generate a key from your Starling Developer account after you [Create a Sandbox customer](https://developer.starlingbank.com/sandbox/select).
 
 ### Run the app
 To use the app simply clone the repository and run the app on your emulator or connected device.

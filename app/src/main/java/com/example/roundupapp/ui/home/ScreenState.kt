@@ -46,9 +46,6 @@ data class ScreenState(
   val hasData: Boolean
     get() = accounts.isNotEmpty()
 
-  val canPerformOperations: Boolean
-    get() = loadingState == LoadingState.Idle && hasData
-
   val isOffline: Boolean
     get() = dataSource == DataSource.CACHE
 }

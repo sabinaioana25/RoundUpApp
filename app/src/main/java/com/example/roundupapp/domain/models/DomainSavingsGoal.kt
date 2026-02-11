@@ -22,13 +22,3 @@ fun NetworkSavingsGoalsWrapper.toListOfDomainSavingsGoals(): List<DomainSavingsG
     )
   } ?: emptyList()
 }
-
-fun CreateSavingsGoalResponse.toDomainSavingsGoal(originalGoal: NetworkSavingsGoal): DomainSavingsGoal {
-    return DomainSavingsGoal(
-        savingsGoalUid = savingsGoalUid,
-        name = originalGoal.name ?: "",
-        targetAmount = originalGoal.target.toDomainAmount(),
-        totalSaved = originalGoal.totalSaved.toDomainAmount(),
-        state = originalGoal.state ?: ""
-    )
-}

@@ -29,17 +29,15 @@ object Dimens {
 
   object Elevation {
     val default = 2.dp
-    val card = 4.dp
   }
 
   object Layout {
-    const val defaultWeight = 1f
+    const val DEFAULT = 1f
   }
   
   object Size {
     val iconBadge = 48.dp
     val progressBar = 8.dp
-    val buttonIcon = 18.dp
   }
   
   object Corner {

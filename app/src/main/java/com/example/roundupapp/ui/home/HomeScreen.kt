@@ -66,12 +66,12 @@ fun HomeScreen(
   onIntent: (Intent) -> Unit,
   modifier: Modifier = Modifier
 ) {
-  val snackbarHostState = remember { SnackbarHostState() }
+  val snackBarHostState = remember { SnackbarHostState() }
 
   // Show errors in snackbar
   LaunchedEffect(state.error) {
     state.error?.let { error ->
-      snackbarHostState.showSnackbar(error.message)
+      snackBarHostState.showSnackbar(error.message)
       onIntent(Intent.DismissError)
     }
   }
@@ -102,7 +102,7 @@ fun HomeScreen(
         )
       }
     },
-    snackbarHost = { SnackbarHost(snackbarHostState) },
+    snackbarHost = { SnackbarHost(snackBarHostState) },
   ) { paddingValues ->
     when {
       // Initial loading state
@@ -182,7 +182,7 @@ private fun HomeScreenContent(
   modifier: Modifier = Modifier
 ) {
   Column(
-    modifier = Modifier
+    modifier = modifier
       .fillMaxSize()
       .background(MaterialTheme.colorScheme.background)
       .padding(Dimens.Spacing.default),
@@ -227,7 +227,7 @@ private fun HomeScreenContent(
     // Transactions Section
     Column(
       modifier = Modifier
-        .weight(Dimens.Layout.defaultWeight)
+        .weight(Dimens.Layout.DEFAULT)
         .fillMaxWidth()
     ) {
       Box(

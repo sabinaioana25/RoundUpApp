@@ -46,27 +46,4 @@ object Validator {
             throw ValidationException("$fieldName must be greater than zero")
         }
     }
-    
-    /**
-     * Extension function for Result to validate before proceeding
-     */
-    inline fun <T> validate(block: () -> Unit): ValidationResult {
-        return try {
-            block()
-            ValidationResult.Valid
-        } catch (e: ValidationException) {
-            ValidationResult.Invalid(e)
-        }
-    }
-}
-
-/**
- * Result of validation operation
- */
-sealed class ValidationResult {
-    object Valid : ValidationResult()
-    data class Invalid(val exception: ValidationException) : ValidationResult()
-    
-    fun isValid() = this is Valid
-    fun getExceptionOrNull() = (this as? Invalid)?.exception
 }

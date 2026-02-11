@@ -10,15 +10,6 @@ object CurrencyConverter {
         return pounds * 100
     }
 
-    fun poundsToMinorUnits(pounds: Double): Int {
-        return (pounds * 100).toInt()
-    }
-
-    fun minorUnitsToPounds(minorUnits: Int): String {
-        val pounds = minorUnits / 100.0
-        return String.format("%.2f", pounds)
-    }
-
     fun parseToMinorUnits(amountString: String): Int? {
         val amount = amountString.toDoubleOrNull() ?: return null
         if (amount <= 0) return null

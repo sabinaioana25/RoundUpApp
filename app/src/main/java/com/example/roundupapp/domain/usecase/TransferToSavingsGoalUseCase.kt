@@ -6,7 +6,7 @@ import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
 import com.example.roundupapp.domain.connectivity.OfflineException
 import com.example.roundupapp.domain.repository.RoundUpRepository
 import com.example.roundupapp.domain.validation.Validator
-import java.util.UUID
+import com.example.roundupapp.utils.randomUuidV4
 import javax.inject.Inject
 
 /**
@@ -38,7 +38,7 @@ class TransferToSavingsGoalUseCase @Inject constructor(
       Validator.requirePositiveAmount(amountMinorUnits, "Transfer amount")
 
       // Generate unique transfer UID
-      val transferUid = UUID.randomUUID().toString()
+      val transferUid = randomUuidV4()
 
       Log.d(TAG, "Initiating transfer: $amountMinorUnits pence to goal $savingsGoalUid")
 

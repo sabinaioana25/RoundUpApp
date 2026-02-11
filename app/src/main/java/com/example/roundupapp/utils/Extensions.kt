@@ -15,7 +15,6 @@ fun Int?.toGbp(): String {
 
 /**
  * Generates a random hexadecimal string of specified length
- * Note: For production use UUID.randomUUID() instead
  */
 fun randomHex(length: Int, rnd: SecureRandom = SecureRandom()): String {
   val hex = "0123456789abcdef"
