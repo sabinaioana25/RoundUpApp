@@ -20,18 +20,15 @@ class HomeScreenTest {
   val composeTestRule =  createAndroidComposeRule<ComponentActivity>()
 
   private fun emptyState(balance: String = "£0.00"): ScreenState = ScreenState(
-    isLoading = false,
-    tasks = emptyList(),
-    error = null,
-    transactions = emptyList(),
+    accounts = emptyList(),
     balance = balance,
+    transactions = emptyList(),
     savingsGoals = emptyList(),
-    roundedAmount = 0
+    roundedAmount = 0,
+    error = null,
   )
 
   private fun stateWithGoalAndTransactions(): ScreenState = ScreenState(
-    isLoading = false,
-    tasks = emptyList(),
     error = null,
     transactions = listOf(
       DomainTransaction(
