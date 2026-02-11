@@ -1,7 +1,7 @@
 package com.example.roundupapp.di
 
 import android.content.Context
-import com.example.roundupapp.data.connectivity.AndroidNetworkConnectivityChecker
+import com.example.roundupapp.data.connectivity.NetworkConnectivityCheckerImpl
 import com.example.roundupapp.domain.connectivity.NetworkConnectivityChecker
 import dagger.Module
 import dagger.Provides
@@ -22,6 +22,6 @@ object ConnectivityModule {
   fun provideNetworkConnectivityChecker(
     @ApplicationContext context: Context
   ): NetworkConnectivityChecker {
-    return AndroidNetworkConnectivityChecker(context)
+    return NetworkConnectivityCheckerImpl(context)
   }
 }

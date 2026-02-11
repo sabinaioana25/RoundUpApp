@@ -6,7 +6,6 @@ import javax.inject.Inject
 /**
  * Calculates total round-up amount from all outgoing transactions
  * Rounds each transaction up to the nearest pound and stores the sum
- *
  */
 class CalculateRoundUpUseCase @Inject constructor(
 ) {

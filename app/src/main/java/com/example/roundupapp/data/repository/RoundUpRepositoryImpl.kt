@@ -42,7 +42,7 @@ class RoundUpRepositoryImpl(
 ) : RoundUpRepository {
 
   companion object {
-    val TAG = RoundUpRepositoryImpl::class.java.simpleName
+    val TAG: String = RoundUpRepositoryImpl::class.java.simpleName
   }
 
   // ================================================================================
@@ -178,7 +178,7 @@ class RoundUpRepositoryImpl(
   }
 
   // ================================================================================
-  // Database Operations - Read (wrapped in DataResult)
+  // Database Operations - Read
   // ================================================================================
   
   override suspend fun getCachedAccounts(): DataResult<List<DomainAccount>> = withContext(Dispatchers.IO) {
@@ -272,7 +272,7 @@ class RoundUpRepositoryImpl(
   }
 
   // ================================================================================
-  // Database Operations - Write (wrapped in DataResult)
+  // Database Operations - Write
   // ================================================================================
   
   override suspend fun cacheAccounts(accounts: List<DomainAccount>): DataResult<Unit> = 

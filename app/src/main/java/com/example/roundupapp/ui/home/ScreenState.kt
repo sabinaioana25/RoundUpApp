@@ -5,19 +5,6 @@ import com.example.roundupapp.domain.models.DomainAccount
 import com.example.roundupapp.domain.models.DomainSavingsGoal
 import com.example.roundupapp.domain.models.DomainTransaction
 
-sealed interface LoadingState {
-  data object Idle : LoadingState
-  data object InitialLoading : LoadingState
-  data object Refreshing : LoadingState
-  data class InProgress(val operation: Operation) : LoadingState
-
-  enum class Operation {
-    CREATING_GOAL,
-    DELETING_GOAL,
-    TRANSFERRING
-  }
-}
-
 /**
  * UI state model for the home screen
  * Tracks data source to show offline indicators
@@ -50,9 +37,20 @@ data class ScreenState(
     get() = dataSource == DataSource.CACHE
 }
 
-/**
- * UI error types
- */
+
+sealed interface LoadingState {
+  data object Idle : LoadingState
+  data object InitialLoading : LoadingState
+  data object Refreshing : LoadingState
+  data class InProgress(val operation: Operation) : LoadingState
+
+  enum class Operation {
+    CREATING_GOAL,
+    DELETING_GOAL,
+    TRANSFERRING
+  }
+}
+
 sealed interface UiError {
   val message: String
 

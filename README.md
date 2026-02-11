@@ -13,7 +13,7 @@
 - Error handling
 - State management with loading indicator
 - Network connectivity checks
-- Material3 Design UI
+- Material 3 Design UI
 - Unit testing for view model, use cases and repository
   
 ## How To Use

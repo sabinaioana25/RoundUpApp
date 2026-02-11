@@ -10,10 +10,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
- * Android implementation of network connectivity checker
+ * Network connectivity checker
  * Uses ConnectivityManager to check for active network connection
  */
-class AndroidNetworkConnectivityChecker @Inject constructor(
+class NetworkConnectivityCheckerImpl @Inject constructor(
   @ApplicationContext private val context: Context
 ) : NetworkConnectivityChecker {
 
@@ -29,7 +29,7 @@ class AndroidNetworkConnectivityChecker @Inject constructor(
       capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
         capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     } catch (e: Exception) {
-      // If we can't determine, assume no connectivity to be safe
+      // If cannot be determined, assume no connectivity to be safe
       false
     }
   }
