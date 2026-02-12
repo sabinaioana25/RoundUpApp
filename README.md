@@ -1,5 +1,5 @@
 ## Overview
-[Sabina Leitoiu] The RoundUpApp is a tiny app built to showcase some of the current Kotlin and Android architecture design patterns. The app helps users automatically save small amounts of money by "rounding up" their weekly transactions to the nearest pound and transferring the difference into a savings goal.
+The RoundUpApp is a tiny app built to showcase some of the current Kotlin and Android architecture design patterns. The app helps users automatically save small amounts of money by "rounding up" their weekly transactions to the nearest pound and transferring the difference into a savings goal.
 
 ## Architecture
 - MVI single state object unidirectional data flow architecture
