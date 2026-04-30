@@ -53,7 +53,7 @@ import java.time.format.DateTimeFormatter
 /**
  * Implementation of the [RoundUpRepository] that uses a local database as a cache
  * and a remote API as the single source of truth
- * All methods wrap results in DataResult for consistent error handling
+ * All methods wrap results in [DataResult] for consistent error handling
  */
 class RoundUpRepositoryImpl(
   private val database: RoundUpDatabase
