@@ -14,7 +14,6 @@ import com.example.roundupapp.domain.usecase.CalculateRoundUpUseCase
 import com.example.roundupapp.domain.usecase.CreateSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.DeleteSavingsGoalUseCase
 import com.example.roundupapp.domain.usecase.TransferToSavingsGoalUseCase
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -24,7 +23,6 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -138,7 +136,7 @@ class HomeViewModelTest {
   @Test
   fun `init sets InitialLoading state during load`() = runTest {
     coEvery { accountDetailsUseCase() } coAnswers {
-      kotlinx.coroutines.awaitCancellation()
+      awaitCancellation()
     }
     viewModel = createViewModel()
 
@@ -202,7 +200,7 @@ class HomeViewModelTest {
 
     // Freeze mid-flight so we can assert Refreshing before the coroutine completes
     coEvery { accountDetailsUseCase() } coAnswers {
-      kotlinx.coroutines.awaitCancellation()
+      awaitCancellation()
     }
     viewModel.processIntent(Intent.Refresh)
     testScheduler.runCurrent()
@@ -269,7 +267,7 @@ class HomeViewModelTest {
 
     // Suspend indefinitely so the coroutine stays paused at the InProgress point
     coEvery { createSavingsGoalUseCase(any(), any(), any(), any()) } coAnswers {
-      kotlinx.coroutines.awaitCancellation()
+      awaitCancellation()
     }
 
     viewModel.processIntent(Intent.CreateSavingsGoal("Holiday", 100000, "GBP"))
@@ -403,7 +401,7 @@ class HomeViewModelTest {
 
     // Suspend indefinitely so the coroutine stays paused at the InProgress point
     coEvery { transferToSavingsGoalUseCase(any(), any(), any()) } coAnswers {
-      kotlinx.coroutines.awaitCancellation()
+      awaitCancellation()
     }
 
     viewModel.processIntent(Intent.TransferToSavingsGoal)

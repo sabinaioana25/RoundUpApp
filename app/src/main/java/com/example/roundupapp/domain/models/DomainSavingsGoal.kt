@@ -1,7 +1,5 @@
 package com.example.roundupapp.domain.models
 
-import com.example.roundupapp.data.network.dto.savingsgoals.CreateSavingsGoalResponse
-import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoal
 import com.example.roundupapp.data.network.dto.savingsgoals.NetworkSavingsGoalsWrapper
 
 data class DomainSavingsGoal(
