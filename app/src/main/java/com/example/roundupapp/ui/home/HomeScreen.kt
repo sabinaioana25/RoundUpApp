@@ -68,7 +68,7 @@ fun HomeScreen(
 ) {
   val snackBarHostState = remember { SnackbarHostState() }
 
-  // Show errors in snackbar
+  // Show errors in snackbar and dismiss
   LaunchedEffect(state.error) {
     state.error?.let { error ->
       snackBarHostState.showSnackbar(error.message)
@@ -126,7 +126,7 @@ fun HomeScreen(
         }
       }
 
-      // No data and not loading
+      // No data and not loading, show retry action
       !state.hasData && !state.isLoading -> {
         Box(
           modifier = Modifier
